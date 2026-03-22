@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, Shield, Key, Layers, Cpu, Zap, GitBranch,
-  Terminal, CheckCircle2, Bolt, Lock, Code2, Sparkles
+  Terminal, CheckCircle2, Bolt, Lock, Code2, Sparkles, Github, Star
 } from 'lucide-react'
+
+
 
 // ── Custom Hook for Scroll Animations ──
 function useScrollReveal() {
@@ -141,16 +143,32 @@ export default function LandingPage() {
           {/* Center */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium" style={{ color: '#71717a' }}>
             <Link href="#product" className="hover:text-white transition-colors">Product</Link>
+            <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
             <Link href="/docs" className="hover:text-white transition-colors">Docs</Link>
           </div>
 
           {/* Right */}
           <div className="flex items-center gap-5 text-sm font-medium">
+            {/* Landing Page GitHub Star Button */}
+            <a 
+              href="https://github.com/krishpinto/WidgetForge" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-[#ededed]"
+              style={{ backgroundColor: '#141414', borderColor: '#27272a' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1c1c1c'; e.currentTarget.style.borderColor = '#3f3f46'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#141414'; e.currentTarget.style.borderColor = '#27272a'; }}
+            >
+              <Github className="w-4 h-4" />
+              <span>Star on GitHub</span>
+              <Star className="w-3.5 h-3.5" style={{ color: '#eab308', fill: '#eab308' }} />
+            </a>
+
             <Link href="/login" style={{ color: '#71717a' }} className="hover:text-white transition-colors hidden sm:block">
               Sign in
             </Link>
-            <Link href="/signup"
-              style={{ backgroundColor: '#3ecf8e', color: '#0c0c0c' }}
+            <Link href="/signup" 
+              style={{ backgroundColor: '#3ecf8e', color: '#0c0c0c' }} 
               className="px-4 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center gap-2 font-semibold"
             >
               Start for free

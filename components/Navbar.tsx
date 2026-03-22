@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
 import { 
-  Search, Bell, HelpCircle, Terminal, User, 
-  ChevronDown, Plug, LogOut, Settings, Book, Bolt 
+  User, ChevronDown, Plug, LogOut, Settings, Book, Bolt, Github, Star 
 } from 'lucide-react'
 
 interface NavbarProps {
@@ -57,7 +56,6 @@ export default function Navbar({ userEmail, activePage = 'dashboard', onLogout }
             }}>
               FREE
             </span>
-            <ChevronDown className="w-3.5 h-3.5" style={{ color: '#71717a' }} />
           </Link>
 
           <span style={{ color: '#3f3f46', fontSize: 14 }}>/</span>
@@ -76,7 +74,7 @@ export default function Navbar({ userEmail, activePage = 'dashboard', onLogout }
             }}>
               PRODUCTION
             </span>
-            <ChevronDown className="w-3.5 h-3.5" style={{ color: '#71717a' }} />
+            
           </div>
 
           <button style={{ 
@@ -97,39 +95,23 @@ export default function Navbar({ userEmail, activePage = 'dashboard', onLogout }
       {/* ── Right: Utilities & Profile ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         
-        <a href="mailto:support@widgetforge.com" style={{ fontSize: 13, color: '#71717a', textDecoration: 'none', fontWeight: 500 }} className="hover:text-[#ededed] transition-colors hidden md:block">
-          Feedback
+        {/* GitHub Star Button */}
+        <a 
+          href="https://github.com/krishpinto/WidgetForge" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{ 
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '6px 12px', borderRadius: 6, border: '1px solid #27272a', 
+            background: '#141414', color: '#ededed', fontSize: 13, fontWeight: 500,
+            textDecoration: 'none', transition: 'all 0.2s'
+          }}
+          className="hover:bg-[#1c1c1c] hover:border-[#3f3f46] hidden sm:flex"
+        >
+          <Github className="w-4 h-4" />
+          <span>Star on GitHub</span>
+          <Star className="w-3.5 h-3.5" style={{ color: '#eab308', fill: '#eab308' }} />
         </a>
-
-        {/* Search Bar Placeholder */}
-        <button style={{ 
-          display: 'flex', alignItems: 'center', gap: 48,
-          padding: '4px 8px 4px 10px', borderRadius: 6, border: '1px solid #1c1c1c', 
-          background: '#141414', color: '#71717a', fontSize: 13, cursor: 'text'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Search className="w-3.5 h-3.5" />
-            <span>Search...</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontFamily: 'monospace' }}>
-            <span style={{ background: '#1c1c1c', padding: '2px 4px', borderRadius: 4, color: '#ededed' }}>⌘</span>
-            <span style={{ background: '#1c1c1c', padding: '2px 4px', borderRadius: 4, color: '#ededed' }}>K</span>
-          </div>
-        </button>
-
-        {/* Utility Icons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Link href="/docs" style={{ padding: 6, background: 'transparent', border: 'none', color: '#71717a', cursor: 'pointer', borderRadius: 6 }} className="hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all">
-            <HelpCircle className="w-4 h-4" />
-          </Link>
-          <button style={{ padding: 6, background: 'transparent', border: 'none', color: '#71717a', cursor: 'pointer', borderRadius: 6, position: 'relative' }} className="hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all">
-            <Bell className="w-4 h-4" />
-            <span style={{ position: 'absolute', top: 6, right: 6, width: 6, height: 6, background: '#ef4444', borderRadius: '50%', border: '2px solid #0c0c0c' }} />
-          </button>
-          <button style={{ padding: 6, background: 'transparent', border: 'none', color: '#71717a', cursor: 'pointer', borderRadius: 6 }} className="hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all">
-            <Terminal className="w-4 h-4" />
-          </button>
-        </div>
 
         {/* Profile Dropdown */}
         <div ref={dropdownRef} style={{ position: 'relative' }}>
