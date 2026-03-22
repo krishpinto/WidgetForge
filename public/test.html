@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V2 Widget Test</title>
+  <style>
+    * { font-family: "Comic Sans MS", cursive !important; color: red !important; }
+    body { background: #f0e6d3; padding: 40px; }
+    h1 { font-size: 32px; }
+  </style>
+</head>
+<body>
+  <h1>🧪 V2 Widget Test</h1>
+  <p>Comic Sans and red text everywhere. Widget in bottom-right should still look clean.</p>
+  <p>V2 secure mode — only a bot ID in the script tag. No key, no prompt exposed.</p>
+
+  <!--
+    Replace YOUR_BOT_ID with your actual botId from Supabase bots table
+    e.g. bot_cd66f89
+  -->
+  <script
+    src="./widget.js"
+    data-bot-id="bot_cdd6ef89"
+    data-api-endpoint="http://localhost:3000/api/chat">
+  </script>
+</body>
+</html>

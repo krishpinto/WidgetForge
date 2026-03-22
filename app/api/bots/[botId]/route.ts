@@ -39,6 +39,33 @@ export async function GET(
   })
 }
 
+// ── PATCH /api/bots/[botId] ──
+// Updates name, systemPrompt, primaryColor
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ botId: string }> }
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { botId } = await params
+  const { name, systemPrompt, primaryColor } = await req.json()
+
+  await db
+    .update(bots)
+    .set({
+      ...(name && { name }),
+      ...(systemPrompt && { systemPrompt }),
+      ...(primaryColor && { primaryColor }),
+      updatedAt: new Date(),
+    })
+    .where(and(eq(bots.id, botId), eq(bots.userId, user.id)))
+
+  return NextResponse.json({ success: true })
+}
+
 // ── DELETE /api/bots/[botId] ──
 export async function DELETE(
   req: NextRequest,
