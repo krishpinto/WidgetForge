@@ -84,10 +84,13 @@ export default function DashboardPage() {
       {/* ── Sidebar ── */}
       <aside className="fixed left-0 top-0 bottom-0 flex flex-col p-4 w-[200px] h-screen font-sans text-sm font-medium tracking-tight z-50" style={{ backgroundColor: '#0f0f0f', borderRight: '1px solid #1c1c1c' }}>
         <div className="flex items-center gap-3 mb-8 px-2">
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }} className="hover:opacity-80 transition-opacity">
           <div className="w-6 h-6 rounded flex items-center justify-center shadow-md" style={{ backgroundColor: '#ededed' }}>
+            
             <Bolt className="h-4 w-4" style={{ color: '#0f0f0f', fill: '#0f0f0f' }} />
           </div>
           <span className="text-lg font-bold tracking-tighter" style={{ color: '#ededed' }}>widgetforge</span>
+          </Link>
         </div>
         
         <nav className="flex-1 space-y-1">
