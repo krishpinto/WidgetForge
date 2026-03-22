@@ -61,7 +61,7 @@
     primaryColor: scriptTag?.getAttribute("data-primary-color") || "#6366f1",
     apiEndpoint:
       scriptTag?.getAttribute("data-api-endpoint") ||
-      "https://widget-test-ebon.vercel.app/api/chat",
+      (scriptTag && scriptTag.src ? new URL(scriptTag.src).origin : "http://localhost:3000") + "/api/chat",
     title: scriptTag?.getAttribute("data-title") || "AI Assistant",
   };
 
