@@ -30,7 +30,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
+  
+  // UI Hover States
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null)
+  const [cardHover, setCardHover] = useState<string | null>(null)
+  
+  // Modal States
+  const [connectModalId, setConnectModalId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -69,6 +76,8 @@ export default function DashboardPage() {
     return { backgroundColor: 'transparent', color: '#71717a', border: '1px solid #1c1c1c' }
   }
 
+  const activeBot = bots.find(b => b.id === connectModalId)
+
   return (
     <div className="flex min-h-screen font-sans" style={{ backgroundColor: '#0f0f0f', color: '#ededed' }}>
       
@@ -86,7 +95,7 @@ export default function DashboardPage() {
             <LayoutDashboard className="h-4 w-4" />
             Dashboard
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
+          <Link href="/dashboard/settings" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
             <Settings className="h-4 w-4" />
             Settings
           </Link>
@@ -94,9 +103,9 @@ export default function DashboardPage() {
         
         <div className="mt-auto space-y-4 pt-4 border-t" style={{ borderTop: '1px solid #1c1c1c' }}>
           <div className="space-y-1">
-            <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
+            <Link href="/docs" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
               <Book className="h-4 w-4" />
-              Documentation
+              Docs
             </Link>
             <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
               <HelpCircle className="h-4 w-4" />
@@ -117,36 +126,71 @@ export default function DashboardPage() {
       </aside>
 
       {/* ── Main Content Area ── */}
-      <main className="flex-1 ml-[200px] flex flex-col min-h-screen">
+      <main className="flex-1 ml-[200px] flex flex-col min-h-screen overflow-x-hidden">
         
-        {/* Top Navbar */}
-        <Navbar userEmail={userEmail} activePage="dashboard" />
+        <Navbar userEmail={userEmail} activePage="dashboard" onLogout={handleLogout} />
 
         {/* Page Content */}
-        <div className="p-8 max-w-6xl mx-auto w-full">
+        <div className="p-8 max-w-5xl mx-auto w-full flex-1">
           
           {/* Hero Header */}
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center justify-between mb-10">
             <div>
               <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: '#ededed' }}>Your Bots</h1>
               <div className="flex items-center gap-3">
-                <p className="text-sm" style={{ color: '#71717a' }}>{bots.length}/3 used on Free tier</p>
+                <p className="text-sm" style={{ color: '#71717a' }}>{loading ? '0' : bots.length}/3 used on Free tier</p>
                 <div className="w-32 h-1 rounded-full overflow-hidden" style={{ backgroundColor: '#1c1c1c' }}>
                   <div 
                     className="h-full transition-all duration-500" 
-                    style={{ backgroundColor: '#ededed', width: `${Math.min((bots.length / 3) * 100, 100)}%` }} 
+                    style={{ backgroundColor: '#ededed', width: `${Math.min(((loading ? 0 : bots.length) / 3) * 100, 100)}%` }} 
                   />
                 </div>
               </div>
             </div>
             
             <Link href="/dashboard/new">
-              <Button disabled={bots.length >= 3} className="flex items-center gap-2 px-5 py-2.5 h-auto rounded-md font-bold text-sm transition-all shadow-lg active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed border-0" style={{ backgroundColor: '#ededed', color: '#0f0f0f' }}>
+              <button disabled={bots.length >= 3} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 6, fontWeight: 600, fontSize: 13, backgroundColor: '#ededed', color: '#0f0f0f', border: 'none', cursor: bots.length >= 3 ? 'not-allowed' : 'pointer', opacity: bots.length >= 3 ? 0.5 : 1 }}>
                 <Plus className="h-4 w-4" />
                 New Bot
-              </Button>
+              </button>
             </Link>
           </div>
+
+          {/* Quick Actions Row */}
+          {!loading && bots.length > 0 && (
+            <div style={{ marginBottom: 40 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                <Link href="/dashboard/new" style={{ textDecoration: 'none' }}>
+                  <div 
+                    onMouseEnter={() => setCardHover('new')}
+                    onMouseLeave={() => setCardHover(null)}
+                    style={{ background: cardHover === 'new' ? '#1a1a1a' : '#141414', border: '1px solid #1c1c1c', borderRadius: 8, padding: 16, transition: 'background 0.2s', cursor: 'pointer' }}>
+                    <Plus className="h-5 w-5 mb-3" style={{ color: '#ededed' }} />
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#ededed', marginBottom: 4 }}>New Bot</div>
+                    <div style={{ fontSize: 12, color: '#71717a' }}>Create a new AI agent</div>
+                  </div>
+                </Link>
+                <Link href="/docs" style={{ textDecoration: 'none' }}>
+                  <div 
+                    onMouseEnter={() => setCardHover('docs')}
+                    onMouseLeave={() => setCardHover(null)}
+                    style={{ background: cardHover === 'docs' ? '#1a1a1a' : '#141414', border: '1px solid #1c1c1c', borderRadius: 8, padding: 16, transition: 'background 0.2s', cursor: 'pointer' }}>
+                    <Book className="h-5 w-5 mb-3" style={{ color: '#ededed' }} />
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#ededed', marginBottom: 4 }}>Read Docs</div>
+                    <div style={{ fontSize: 12, color: '#71717a' }}>Integration guides</div>
+                  </div>
+                </Link>
+                <div 
+                  onMouseEnter={() => setCardHover('api')}
+                  onMouseLeave={() => setCardHover(null)}
+                  style={{ background: cardHover === 'api' ? '#1a1a1a' : '#141414', border: '1px solid #1c1c1c', borderRadius: 8, padding: 16, transition: 'background 0.2s', cursor: 'pointer' }}>
+                  <Terminal className="h-5 w-5 mb-3" style={{ color: '#ededed' }} />
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#ededed', marginBottom: 4 }}>View API</div>
+                  <div style={{ fontSize: 12, color: '#71717a' }}>Explore the API</div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Loading State */}
           {loading && (
@@ -213,12 +257,19 @@ export default function DashboardPage() {
                       </h3>
                     </div>
                     
-                    {/* Kebab Menu */}
-                    <div className="pointer-events-auto">
+                    {/* Connect Button + Kebab */}
+                    <div className="pointer-events-auto flex items-center gap-2">
+                      <button 
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConnectModalId(bot.id); }}
+                        className="hover:bg-white/5 transition-colors"
+                        style={{ padding: '3px 10px', fontSize: 11, fontWeight: 500, background: 'transparent', color: '#ededed', border: '1px solid #1c1c1c', borderRadius: 6, cursor: 'pointer' }}
+                      >
+                        Connect
+                      </button>
                       <AlertDialog>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="transition-colors focus:outline-none bg-transparent border-0" style={{ color: '#71717a' }}>
+                            <button className="transition-colors focus:outline-none bg-transparent border-0 hover:text-white" style={{ color: '#71717a' }}>
                               <MoreVertical className="h-4 w-4" />
                             </button>
                           </DropdownMenuTrigger>
@@ -226,7 +277,7 @@ export default function DashboardPage() {
                             <AlertDialogTrigger asChild>
                               <DropdownMenuItem 
                                 onSelect={(e) => e.preventDefault()}
-                                className="cursor-pointer bg-transparent"
+                                className="cursor-pointer bg-transparent hover:bg-white/5"
                                 style={{ color: '#f87171' }}
                               >
                                 <Trash2 className="mr-2 h-3.5 w-3.5" />
@@ -243,11 +294,11 @@ export default function DashboardPage() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="bg-transparent border" style={{ color: '#ededed', borderColor: '#1c1c1c' }}>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel className="bg-transparent border hover:bg-white/5" style={{ color: '#ededed', borderColor: '#1c1c1c' }}>Cancel</AlertDialogCancel>
                             <AlertDialogAction 
                               onClick={(e) => handleDelete(bot.id, e as any)}
                               disabled={deleting === bot.id}
-                              className="border-0"
+                              className="border-0 hover:opacity-90 transition-opacity"
                               style={{ backgroundColor: '#f87171', color: '#0f0f0f' }}
                             >
                               {deleting === bot.id ? 'Deleting...' : 'Delete'}
@@ -259,7 +310,7 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="space-y-4 z-10 relative pointer-events-none">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 hidden md:flex">
                        <span className="px-2 py-0.5 text-[10px] font-mono rounded uppercase tracking-wider" style={getProviderStyles(bot.provider)}>
                          {bot.provider}
                        </span>
@@ -285,10 +336,17 @@ export default function DashboardPage() {
           )}
           
           {/* Footer Meta */}
-          <div className="mt-16 flex items-center justify-between pt-6 border-t" style={{ borderTop: '1px solid #1c1c1c' }}>
+          <div className="mt-16 flex items-center justify-between pt-6 border-t pb-8" style={{ borderTop: '1px solid #1c1c1c' }}>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#052e16' }}></span>
+                <style>{`
+                  @keyframes statusPulse {
+                    0% { box-shadow: 0 0 0 0 rgba(62, 207, 142, 0.4); }
+                    70% { box-shadow: 0 0 0 4px rgba(62, 207, 142, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(62, 207, 142, 0); }
+                  }
+                `}</style>
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3ecf8e', animation: 'statusPulse 2s infinite' }}></div>
                 <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: '#71717a' }}>All Systems Operational</span>
               </div>
               <span className="text-[10px] font-mono" style={{ color: '#3f3f46' }}>widgetforge v2.0</span>
@@ -297,6 +355,66 @@ export default function DashboardPage() {
 
         </div>
       </main>
+
+      {/* Connect Modal Overlay */}
+      {connectModalId && activeBot && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(2px)' }} onClick={() => setConnectModalId(null)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, background: '#141414', border: '1px solid #1c1c1c', borderRadius: 12, padding: 32, margin: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 600, color: '#ededed' }}>Deploy {activeBot.name}</h2>
+              <button 
+                onClick={() => setConnectModalId(null)} 
+                style={{ background: 'transparent', border: 'none', color: '#71717a', cursor: 'pointer', fontSize: 18, padding: 4, display: 'flex' }}>
+                ✕
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Script Tag Row */}
+              <div style={{ background: '#0f0f0f', border: '1px solid #1c1c1c', padding: '16px 20px', borderRadius: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#ededed', marginBottom: 12 }}>Script Tag</div>
+                <div style={{ background: '#141414', border: '1px solid #1c1c1c', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <pre style={{ margin: 0, padding: 12, fontSize: 12, color: '#71717a', fontFamily: 'monospace', overflowX: 'auto' }}>
+{`<script 
+  src="\${process.env.NEXT_PUBLIC_APP_URL || 'https://widgetforge.vercel.app'}/widget.js" 
+  data-bot-id="${connectModalId}">
+</script>`}
+                  </pre>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(`<script src="${process.env.NEXT_PUBLIC_APP_URL || 'https://widgetforge.vercel.app'}/widget.js" data-bot-id="${connectModalId}"></script>`)
+                      setCopiedId('script')
+                      setTimeout(() => setCopiedId(null), 2000)
+                    }}
+                    style={{ margin: 12, padding: '4px 10px', fontSize: 11, fontWeight: 500, background: '#1c1c1c', color: copiedId === 'script' ? '#3ecf8e' : '#71717a', border: '1px solid #1c1c1c', borderRadius: 4, cursor: 'pointer', transition: 'color 0.2s' }}
+                  >
+                    {copiedId === 'script' ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+
+              {/* WordPress Row */}
+              <div style={{ background: '#0f0f0f', border: '1px solid #1c1c1c', padding: '16px 20px', borderRadius: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#ededed', marginBottom: 4 }}>WordPress</div>
+                <div style={{ fontSize: 13, color: '#71717a', lineHeight: 1.5 }}>
+                  1. Install "Insert Headers and Footers" plugin.<br/>
+                  2. Paste the script tag above into the Footer section.
+                </div>
+              </div>
+
+              {/* Webflow Row */}
+              <div style={{ background: '#0f0f0f', border: '1px solid #1c1c1c', padding: '16px 20px', borderRadius: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#ededed', marginBottom: 4 }}>Webflow</div>
+                <div style={{ fontSize: 13, color: '#71717a', lineHeight: 1.5 }}>
+                  1. Go to Project Settings -{'>'} Custom Code.<br/>
+                  2. Paste the script tag above into the Footer Code section.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

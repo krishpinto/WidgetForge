@@ -1,23 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Bolt } from 'lucide-react'
+import { useState } from 'react'
 
 interface NavbarProps {
   userEmail?: string
   activePage?: 'dashboard' | 'docs' | 'other'
+  onLogout?: () => void
 }
 
-export default function Navbar({ userEmail, activePage }: NavbarProps) {
-  const router = useRouter()
-  const supabase = createClient()
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+export default function Navbar({ userEmail, activePage, onLogout }: NavbarProps) {
+  const [hovered, setHovered] = useState<string | null>(null)
 
   return (
     <header style={{ 
@@ -25,37 +18,54 @@ export default function Navbar({ userEmail, activePage }: NavbarProps) {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
       padding: '0 24px', borderBottom: '1px solid #1c1c1c', background: '#0f0f0f' 
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <div style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: '#ededed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Bolt className="h-4 w-4" style={{ color: '#0f0f0f', fill: '#0f0f0f' }} />
-          </div>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#ededed', letterSpacing: '-0.02em' }}>widgetforge</span>
+      <nav style={{ display: 'flex', gap: 24, height: '100%' }}>
+        <Link 
+          href="/dashboard" 
+          onMouseEnter={() => setHovered('dashboard')}
+          onMouseLeave={() => setHovered(null)}
+          style={{ 
+            fontSize: 13, textDecoration: 'none', display: 'flex', alignItems: 'center',
+            color: activePage === 'dashboard' ? '#ededed' : '#71717a',
+            borderBottom: hovered === 'dashboard' ? '1px solid #3f3f46' : '1px solid transparent',
+            marginBottom: -1,
+            transition: 'color 0.2s, border-color 0.2s'
+          }}>
+          Dashboard
         </Link>
-        <nav style={{ display: 'flex', gap: 20 }}>
-          <Link href="/dashboard" style={{ 
-            fontSize: 13, textDecoration: 'none',
-            color: activePage === 'dashboard' ? '#ededed' : '#71717a' 
+        <Link 
+          href="/docs" 
+          onMouseEnter={() => setHovered('docs')}
+          onMouseLeave={() => setHovered(null)}
+          style={{ 
+            fontSize: 13, textDecoration: 'none', display: 'flex', alignItems: 'center',
+            color: activePage === 'docs' ? '#ededed' : '#71717a',
+            borderBottom: hovered === 'docs' ? '1px solid #3f3f46' : '1px solid transparent',
+            marginBottom: -1,
+            transition: 'color 0.2s, border-color 0.2s'
           }}>
-            Dashboard
-          </Link>
-          <Link href="/docs" style={{ 
-            fontSize: 13, textDecoration: 'none',
-            color: activePage === 'docs' ? '#ededed' : '#71717a' 
-          }}>
-            Docs
-          </Link>
-        </nav>
-      </div>
+          Docs
+        </Link>
+      </nav>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {userEmail && <span style={{ fontSize: 13, color: '#71717a', fontFamily: 'monospace' }}>{userEmail}</span>}
+        {userEmail && (
+          <span style={{ 
+            fontSize: 13, color: '#71717a', fontFamily: 'monospace', 
+            maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+          }}>
+            {userEmail}
+          </span>
+        )}
         <button 
-          onClick={handleLogout}
+          onClick={onLogout}
+          onMouseEnter={() => setHovered('signout')}
+          onMouseLeave={() => setHovered(null)}
           style={{ 
-            padding: '6px 14px', borderRadius: 6, background: '#1c1c1c', 
+            padding: '6px 14px', borderRadius: 6,
+            background: hovered === 'signout' ? '#2a2a2a' : '#1c1c1c',
             color: '#71717a', fontSize: 13, fontWeight: 500, 
-            border: '1px solid #1c1c1c', cursor: 'pointer' 
+            border: '1px solid #1c1c1c', cursor: 'pointer',
+            transition: 'background-color 0.2s'
           }}
         >
           Sign out
