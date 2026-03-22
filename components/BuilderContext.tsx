@@ -74,8 +74,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const [saved, setSaved] = useState(false)
 
   async function saveBot() {
-    const finalBotName = botName.trim() || 'My Bot'
-    if (!provider || !key || !model || !systemPrompt) return
+    if (!botName || !provider || !key || !model || !systemPrompt) return
     setSaving(true)
 
     try {
@@ -83,7 +82,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: finalBotName,
+          name: botName,
           provider,
           model,
           apiKey: key,         // server will encrypt this

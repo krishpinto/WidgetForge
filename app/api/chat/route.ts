@@ -10,8 +10,8 @@
 //      Used by the builder's live preview node
 //      Key comes directly from the request (never stored)
 //
-// This dual mode means the same endpoint serves both the
-// builder preview AND the real embedded widget.
+// CORS headers are included on every response so the widget
+// can call this endpoint from ANY external website.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -19,6 +19,26 @@ import { db } from '@/db'
 import { bots } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { decrypt } from '@/lib/encryption'
+
+// ── CORS headers ──
+// Required so browsers allow the widget (on external sites) to
+// call this endpoint. Without these, the browser blocks the request.
+const cors = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+// Browsers send a preflight OPTIONS request before the real POST.
+// We must respond with 204 + CORS headers or the real request never fires.
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: cors })
+}
+
+// Helper so we never forget to include CORS headers on any response
+function reply(data: any, status = 200) {
+  return NextResponse.json(data, { status, headers: cors })
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -37,19 +57,19 @@ export async function POST(req: NextRequest) {
       .where(eq(bots.id, body.botId))
 
     if (!bot) {
-      return NextResponse.json({ error: 'Bot not found' }, { status: 404 })
+      return reply({ error: 'Bot not found' }, 404)
     }
 
     provider = bot.provider
     model = bot.model
     systemPrompt = bot.systemPrompt
-    key = decrypt(bot.encryptedApiKey) // decrypt the stored key
+    key = decrypt(bot.encryptedApiKey)
 
     // Increment message count (fire and forget — don't await)
     db.update(bots)
       .set({ messageCount: bot.messageCount + 1 })
       .where(eq(bots.id, body.botId))
-      .catch(() => {}) // ignore errors here
+      .catch(() => {})
 
   } else {
     // ── Preview mode — config comes directly from request ──
@@ -60,17 +80,17 @@ export async function POST(req: NextRequest) {
   }
 
   if (!provider || !key || !model || !messages) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    return reply({ error: 'Missing required fields' }, 400)
   }
 
   try {
-    if (provider === 'gemini') return await chatGemini({ key, model, systemPrompt, messages })
-    if (provider === 'openai') return await chatOpenAI({ key, model, systemPrompt, messages })
+    if (provider === 'gemini')    return await chatGemini({ key, model, systemPrompt, messages })
+    if (provider === 'openai')    return await chatOpenAI({ key, model, systemPrompt, messages })
     if (provider === 'anthropic') return await chatAnthropic({ key, model, systemPrompt, messages })
 
-    return NextResponse.json({ error: 'Unknown provider' }, { status: 400 })
+    return reply({ error: 'Unknown provider' }, 400)
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Chat failed' }, { status: 500 })
+    return reply({ error: err.message || 'Chat failed' }, 500)
   }
 }
 
@@ -99,9 +119,9 @@ async function chatGemini({ key, model, systemPrompt, messages }: any) {
   }
 
   const data = await res.json()
-  const reply = data.candidates?.[0]?.content?.parts?.[0]?.text
-  if (!reply) throw new Error('Gemini returned empty response')
-  return NextResponse.json({ reply })
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) throw new Error('Gemini returned empty response')
+  return reply({ reply: text })
 }
 
 async function chatOpenAI({ key, model, systemPrompt, messages }: any) {
@@ -122,9 +142,9 @@ async function chatOpenAI({ key, model, systemPrompt, messages }: any) {
   }
 
   const data = await res.json()
-  const reply = data.choices?.[0]?.message?.content
-  if (!reply) throw new Error('OpenAI returned empty response')
-  return NextResponse.json({ reply })
+  const text = data.choices?.[0]?.message?.content
+  if (!text) throw new Error('OpenAI returned empty response')
+  return reply({ reply: text })
 }
 
 async function chatAnthropic({ key, model, systemPrompt, messages }: any) {
@@ -144,7 +164,7 @@ async function chatAnthropic({ key, model, systemPrompt, messages }: any) {
   }
 
   const data = await res.json()
-  const reply = data.content?.find((b: any) => b.type === 'text')?.text
-  if (!reply) throw new Error('Anthropic returned empty response')
-  return NextResponse.json({ reply })
+  const text = data.content?.find((b: any) => b.type === 'text')?.text
+  if (!text) throw new Error('Anthropic returned empty response')
+  return reply({ reply: text })
 }
