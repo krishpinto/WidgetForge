@@ -1,16 +1,14 @@
-// app/dashboard/page.tsx
-// ─────────────────────────────────────────────────────────────
-// Main dashboard — shows all the user's bots as cards.
-// Fetches bots from /api/bots on load.
-// Each card links to /dashboard/[botId] to view/edit.
-// "New Bot" button links to /dashboard/new.
-// ─────────────────────────────────────────────────────────────
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { MoreVertical, LayoutDashboard, Settings, Bot, Plus, Trash2, Book, HelpCircle, Terminal, Bell, Bolt } from 'lucide-react'
+
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
 interface Bot {
   id: string
@@ -31,14 +29,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Get user info for the header
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setUserEmail(user.email)
     })
 
-    // Fetch bots
     fetch('/api/bots')
       .then(r => r.json())
       .then(data => {
@@ -63,256 +60,277 @@ export default function DashboardPage() {
     setDeleting(null)
   }
 
-  const PROVIDER_COLORS: Record<string, string> = {
-    gemini: '#1a73e8',
-    openai: '#10a37f',
-    anthropic: '#d97706',
+  const getProviderStyles = (provider: string) => {
+    const p = provider.toLowerCase()
+    if (p === 'gemini') return { backgroundColor: '#172554', color: '#93c5fd' }
+    if (p === 'openai') return { backgroundColor: '#052e16', color: '#86efac' }
+    if (p === 'anthropic') return { backgroundColor: '#431407', color: '#fdba74' }
+    return { backgroundColor: 'transparent', color: '#71717a', border: '1px solid #1c1c1c' }
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#080809',
-      fontFamily: 'system-ui',
-    }}>
-
-      {/* ── Top Bar ── */}
-      <div style={{
-        height: 52,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 24px',
-        borderBottom: '1px solid #111115',
-        background: '#080809',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
-      }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 26, height: 26, borderRadius: 7,
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
-              <path d="M12 2L9.5 9.5H2L8 13.5L5.5 21L12 17L18.5 21L16 13.5L22 9.5H14.5L12 2Z"/>
-            </svg>
+    <div className="flex min-h-screen font-sans" style={{ backgroundColor: '#0f0f0f', color: '#ededed' }}>
+      
+      {/* ── Sidebar ── */}
+      <aside className="fixed left-0 top-0 bottom-0 flex flex-col p-4 w-[200px] h-screen font-sans text-sm font-medium tracking-tight z-50" style={{ backgroundColor: '#0f0f0f', borderRight: '1px solid #1c1c1c' }}>
+        <div className="flex items-center gap-3 mb-8 px-2">
+          <div className="w-6 h-6 rounded flex items-center justify-center shadow-md" style={{ backgroundColor: '#ededed' }}>
+            <Bolt className="h-4 w-4" style={{ color: '#0f0f0f', fill: '#0f0f0f' }} />
           </div>
-          <span style={{ color: '#f0f0f2', fontSize: 14, fontWeight: 700, letterSpacing: '-0.03em' }}>
-            widgetforge
-          </span>
+          <span className="text-lg font-bold tracking-tighter" style={{ color: '#ededed' }}>widgetforge</span>
         </div>
-
-        {/* Right side */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 11.5, color: '#3a3a48' }}>{userEmail}</span>
-          <button
-            onClick={handleLogout}
-            style={{
-              fontSize: 11.5, color: '#3a3a48',
-              background: 'none', border: '1px solid #1c1c22',
-              borderRadius: 6, padding: '4px 10px',
-              cursor: 'pointer',
-            }}
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
-
-      {/* ── Main Content ── */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px' }}>
-
-        {/* Header row */}
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 32,
-        }}>
-          <div>
-            <h1 style={{
-              color: '#f0f0f2', fontSize: 22, fontWeight: 700,
-              letterSpacing: '-0.03em', margin: 0,
-            }}>
-              Your Bots
-            </h1>
-            <p style={{ color: '#3a3a48', fontSize: 12.5, margin: '4px 0 0' }}>
-              {bots.length}/3 bots used on free tier
-            </p>
-          </div>
-
-          <Link href="/dashboard/new" style={{ textDecoration: 'none' }}>
-            <button
-              disabled={bots.length >= 3}
-              style={{
-                padding: '9px 16px',
-                borderRadius: 8, border: 'none',
-                background: bots.length >= 3 ? '#1a1a20' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                color: bots.length >= 3 ? '#3a3a48' : '#fff',
-                fontSize: 13, fontWeight: 600,
-                cursor: bots.length >= 3 ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}
-            >
-              + New Bot
-            </button>
+        
+        <nav className="flex-1 space-y-1">
+          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200" style={{ backgroundColor: '#1c1c1c', color: '#ededed' }}>
+            <LayoutDashboard className="h-4 w-4" />
+            Dashboard
           </Link>
-        </div>
-
-        {/* Loading state */}
-        {loading && (
-          <div style={{ color: '#3a3a48', fontSize: 13, textAlign: 'center', padding: 60 }}>
-            Loading...
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!loading && bots.length === 0 && (
-          <div style={{
-            border: '1px dashed #1c1c22',
-            borderRadius: 14, padding: 60,
-            textAlign: 'center',
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 12,
-          }}>
-            <div style={{ fontSize: 28 }}>⬡</div>
-            <div style={{ color: '#dddde8', fontSize: 14, fontWeight: 600 }}>
-              No bots yet
-            </div>
-            <div style={{ color: '#3a3a48', fontSize: 12.5 }}>
-              Create your first bot in 60 seconds
-            </div>
-            <Link href="/dashboard/new" style={{ textDecoration: 'none', marginTop: 4 }}>
-              <button style={{
-                padding: '8px 16px', borderRadius: 7, border: 'none',
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
-              }}>
-                Create your first bot →
-              </button>
+          <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
+            <Settings className="h-4 w-4" />
+            Settings
+          </Link>
+        </nav>
+        
+        <div className="mt-auto space-y-4 pt-4 border-t" style={{ borderTop: '1px solid #1c1c1c' }}>
+          <div className="space-y-1">
+            <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
+              <Book className="h-4 w-4" />
+              Documentation
+            </Link>
+            <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
+              <HelpCircle className="h-4 w-4" />
+              Support
             </Link>
           </div>
-        )}
-
-        {/* Bots grid */}
-        {!loading && bots.length > 0 && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: 14,
-          }}>
-            {bots.map(bot => (
-              <Link
-                key={bot.id}
-                href={`/dashboard/${bot.id}`}
-                style={{ textDecoration: 'none' }}
-              >
-                <div style={{
-                  background: '#0c0c0e',
-                  border: '1px solid #1c1c22',
-                  borderRadius: 12,
-                  padding: 18,
-                  cursor: 'pointer',
-                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-                  position: 'relative',
-                }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = '#2a2a35'
-                    ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)'
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = '#1c1c22'
-                    ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
-                  }}
-                >
-                  {/* Color dot + name */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <div style={{
-                      width: 8, height: 8, borderRadius: '50%',
-                      background: bot.primaryColor, flexShrink: 0,
-                    }} />
-                    <span style={{
-                      color: '#dddde8', fontSize: 13.5, fontWeight: 600,
-                      letterSpacing: '-0.01em',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {bot.name}
-                    </span>
-                  </div>
-
-                  {/* Provider + model */}
-                  <div style={{ display: 'flex', gap: 5, marginBottom: 12, flexWrap: 'wrap' }}>
-                    <span style={{
-                      fontSize: 9.5, fontFamily: 'monospace',
-                      color: PROVIDER_COLORS[bot.provider] || '#6366f1',
-                      background: `${PROVIDER_COLORS[bot.provider]}15`,
-                      border: `1px solid ${PROVIDER_COLORS[bot.provider]}30`,
-                      padding: '2px 6px', borderRadius: 4,
-                    }}>
-                      {bot.provider}
-                    </span>
-                    <span style={{
-                      fontSize: 9.5, fontFamily: 'monospace',
-                      color: '#3a3a48', background: '#111114',
-                      border: '1px solid #1c1c22',
-                      padding: '2px 6px', borderRadius: 4,
-                    }}>
-                      {bot.model}
-                    </span>
-                  </div>
-
-                  {/* Website URL */}
-                  {bot.websiteUrl && (
-                    <div style={{
-                      fontSize: 10.5, color: '#2a2a38',
-                      overflow: 'hidden', textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap', marginBottom: 12,
-                    }}>
-                      {bot.websiteUrl}
-                    </div>
-                  )}
-
-                  {/* Stats row */}
-                  <div style={{
-                    display: 'flex', justifyContent: 'space-between',
-                    alignItems: 'center', paddingTop: 12,
-                    borderTop: '1px solid #111115',
-                  }}>
-                    <span style={{ fontSize: 10.5, color: '#2a2a38' }}>
-                      {bot.messageCount} messages
-                    </span>
-                    {/* Bot ID badge */}
-                    <span style={{
-                      fontSize: 9, fontFamily: 'monospace',
-                      color: '#2a2a35', background: '#0a0a0c',
-                      padding: '2px 5px', borderRadius: 3,
-                    }}>
-                      {bot.id}
-                    </span>
-                  </div>
-
-                  {/* Delete button */}
-                  <button
-                    onClick={e => handleDelete(bot.id, e)}
-                    disabled={deleting === bot.id}
-                    style={{
-                      position: 'absolute', top: 12, right: 12,
-                      background: 'none', border: 'none',
-                      color: '#2a2a35', fontSize: 14,
-                      cursor: 'pointer', padding: 2,
-                      opacity: deleting === bot.id ? 0.5 : 1,
-                    }}
-                    title="Delete bot"
-                  >
-                    ×
-                  </button>
-                </div>
-              </Link>
-            ))}
+          <div className="p-3 rounded-lg border" style={{ backgroundColor: '#0f0f0f', border: '1px solid #1c1c1c' }}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] uppercase tracking-widest font-mono" style={{ color: '#3f3f46' }}>Status</span>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#052e16' }}></span>
+            </div>
+            <div className="text-[11px] truncate font-mono" style={{ color: '#71717a' }}>{userEmail || 'user@example.com'}</div>
+            <div className="inline-flex items-center px-1.5 py-0.5 mt-2 rounded border text-[10px] font-mono uppercase tracking-wider" style={{ backgroundColor: '#1c1c1c', borderColor: '#1c1c1c', color: '#ededed' }}>
+              Free Tier
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      </aside>
+
+      {/* ── Main Content Area ── */}
+      <main className="flex-1 ml-[200px] flex flex-col min-h-screen">
+        
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-40 flex items-center justify-between px-6 h-14 w-full backdrop-blur-md border-b" style={{ backgroundColor: '#0f0f0f', borderBottom: '1px solid #1c1c1c' }}>
+          <div className="flex items-center gap-4">
+            <nav className="flex items-center text-[10px] font-mono uppercase tracking-widest" style={{ color: '#71717a' }}>
+              <span className="cursor-pointer transition-colors" style={{ color: '#71717a' }}>widgetforge</span>
+              <span className="mx-2 opacity-40">/</span>
+              <span style={{ color: '#ededed' }}>Dashboard</span>
+            </nav>
+            <div className="h-4 w-[1px] mx-2" style={{ backgroundColor: '#1c1c1c' }}></div>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-mono tracking-tighter" style={{ backgroundColor: '#0f0f0f', borderColor: '#1c1c1c', color: '#71717a' }}>
+              PRODUCTION
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 text-[10px] font-mono uppercase tracking-widest" style={{ color: '#71717a' }}>
+              <span className="cursor-pointer transition-colors">Docs</span>
+              <span className="cursor-pointer transition-colors">API</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button className="p-1.5 transition-colors" style={{ color: '#71717a' }}>
+                <Terminal className="h-4 w-4" />
+              </button>
+              <button className="p-1.5 transition-colors relative" style={{ color: '#71717a' }}>
+                <Bell className="h-4 w-4" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#ededed' }}></span>
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="ml-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all active:scale-95"
+                style={{ backgroundColor: '#ededed', color: '#0f0f0f' }}
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <div className="p-8 max-w-6xl mx-auto w-full">
+          
+          {/* Hero Header */}
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: '#ededed' }}>Your Bots</h1>
+              <div className="flex items-center gap-3">
+                <p className="text-sm" style={{ color: '#71717a' }}>{bots.length}/3 used on Free tier</p>
+                <div className="w-32 h-1 rounded-full overflow-hidden" style={{ backgroundColor: '#1c1c1c' }}>
+                  <div 
+                    className="h-full transition-all duration-500" 
+                    style={{ backgroundColor: '#ededed', width: `${Math.min((bots.length / 3) * 100, 100)}%` }} 
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <Link href="/dashboard/new">
+              <Button disabled={bots.length >= 3} className="flex items-center gap-2 px-5 py-2.5 h-auto rounded-md font-bold text-sm transition-all shadow-lg active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed border-0" style={{ backgroundColor: '#ededed', color: '#0f0f0f' }}>
+                <Plus className="h-4 w-4" />
+                New Bot
+              </Button>
+            </Link>
+          </div>
+
+          {/* Loading State */}
+          {loading && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex flex-col border rounded-xl p-5" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: '#1c1c1c' }} />
+                      <div className="h-4 w-32 animate-pulse rounded-md" style={{ backgroundColor: '#1c1c1c' }} />
+                    </div>
+                    <div className="h-4 w-4 rounded-full animate-pulse" style={{ backgroundColor: '#1c1c1c' }} />
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <div className="h-5 w-16 animate-pulse rounded-md" style={{ backgroundColor: '#1c1c1c' }} />
+                      <div className="h-5 w-24 animate-pulse rounded-md" style={{ backgroundColor: '#1c1c1c' }} />
+                    </div>
+                    <div className="pt-4 border-t flex justify-between" style={{ borderTop: '1px solid #1c1c1c' }}>
+                      <div className="h-8 w-16 animate-pulse rounded-md" style={{ backgroundColor: '#1c1c1c' }} />
+                      <div className="h-8 w-16 animate-pulse rounded-md" style={{ backgroundColor: '#1c1c1c' }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && bots.length === 0 && (
+            <div className="border border-dashed rounded-xl p-12 flex flex-col items-center justify-center text-center group transition-colors" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 border group-hover:scale-110 transition-transform" style={{ backgroundColor: '#0f0f0f', borderColor: '#1c1c1c' }}>
+                <Bot className="h-6 w-6" style={{ color: '#71717a' }} />
+              </div>
+              <h3 className="text-lg font-semibold mb-1" style={{ color: '#ededed' }}>No bots yet</h3>
+              <p className="text-xs max-w-sm mb-6" style={{ color: '#71717a' }}>Build your first custom AI agent to deploy on any website in just 60 seconds.</p>
+              <Link href="/dashboard/new">
+                <Button className="h-9 gap-2 font-semibold px-4 border-0" style={{ backgroundColor: '#ededed', color: '#0f0f0f' }}>
+                  <Plus className="h-4 w-4" />
+                  Create your first bot
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {/* Bot Cards Grid */}
+          {!loading && bots.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {bots.map((bot) => (
+                 <div 
+                   key={bot.id} 
+                   onMouseEnter={() => setHoveredCardId(bot.id)}
+                   onMouseLeave={() => setHoveredCardId(null)}
+                   className="group relative flex flex-col border rounded-xl p-5 transition-all duration-300 shadow-sm" 
+                   style={{ backgroundColor: hoveredCardId === bot.id ? '#1a1a1a' : '#141414', borderColor: '#1c1c1c' }}
+                 >
+                  <Link href={`/dashboard/${bot.id}`} className="absolute inset-0 z-0" />
+                  
+                  <div className="flex items-start justify-between mb-6 z-10 relative pointer-events-none">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: bot.primaryColor }}></div>
+                      <h3 className="font-semibold tracking-tight pointer-events-auto transition-colors" style={{ color: '#ededed' }}>
+                        <Link href={`/dashboard/${bot.id}`}>{bot.name}</Link>
+                      </h3>
+                    </div>
+                    
+                    {/* Kebab Menu */}
+                    <div className="pointer-events-auto">
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="transition-colors focus:outline-none bg-transparent border-0" style={{ color: '#71717a' }}>
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40 border" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem 
+                                onSelect={(e) => e.preventDefault()}
+                                className="cursor-pointer bg-transparent"
+                                style={{ color: '#f87171' }}
+                              >
+                                <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                <span>Delete bot</span>
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent className="border" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle style={{ color: '#ededed' }}>Delete {bot.name}?</AlertDialogTitle>
+                            <AlertDialogDescription style={{ color: '#71717a' }}>
+                              This action cannot be undone. This will permanently delete your bot from our servers and it will instantly stop working on deployed sites.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-transparent border" style={{ color: '#ededed', borderColor: '#1c1c1c' }}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={(e) => handleDelete(bot.id, e as any)}
+                              disabled={deleting === bot.id}
+                              className="border-0"
+                              style={{ backgroundColor: '#f87171', color: '#0f0f0f' }}
+                            >
+                              {deleting === bot.id ? 'Deleting...' : 'Delete'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 z-10 relative pointer-events-none">
+                    <div className="flex flex-wrap gap-2">
+                       <span className="px-2 py-0.5 text-[10px] font-mono rounded uppercase tracking-wider" style={getProviderStyles(bot.provider)}>
+                         {bot.provider}
+                       </span>
+                       <span className="px-2 py-0.5 text-[10px] font-mono border rounded tracking-wider uppercase" style={{ backgroundColor: '#0f0f0f', color: '#71717a', borderColor: '#1c1c1c' }}>
+                         {bot.model}
+                       </span>
+                    </div>
+
+                    <div className="pt-4 border-t flex items-center justify-between" style={{ borderTop: '1px solid #1c1c1c' }}>
+                      <div className="flex flex-col">
+                        <span className="text-[9px] uppercase tracking-widest mb-0.5 font-mono" style={{ color: '#3f3f46' }}>ID</span>
+                        <span className="text-xs font-mono" style={{ color: '#71717a' }}>{bot.id}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[9px] uppercase tracking-widest mb-0.5 font-mono" style={{ color: '#3f3f46' }}>Messages</span>
+                        <span className="text-xs font-mono" style={{ color: '#71717a' }}>{bot.messageCount.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                 </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Footer Meta */}
+          <div className="mt-16 flex items-center justify-between pt-6 border-t" style={{ borderTop: '1px solid #1c1c1c' }}>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#052e16' }}></span>
+                <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: '#71717a' }}>All Systems Operational</span>
+              </div>
+              <span className="text-[10px] font-mono" style={{ color: '#3f3f46' }}>widgetforge v2.0</span>
+            </div>
+          </div>
+
+        </div>
+      </main>
     </div>
   )
 }

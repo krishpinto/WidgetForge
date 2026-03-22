@@ -1,17 +1,10 @@
-// app/dashboard/[botId]/page.tsx
-// ─────────────────────────────────────────────────────────────
-// View/edit a single bot. Shows all its details and the
-// script tag. User can update the name, system prompt,
-// and primary color. API key and model are locked after
-// creation (changing them would require re-encrypting the key).
-//
-// Fetches bot data from GET /api/bots/[botId] on load.
-// ─────────────────────────────────────────────────────────────
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+import { LayoutDashboard, Settings, Bolt, Book, HelpCircle } from 'lucide-react'
 
 interface Bot {
   id: string
@@ -28,6 +21,7 @@ interface Bot {
 export default function BotDetailPage() {
   const { botId } = useParams() as { botId: string }
   const router = useRouter()
+  const supabase = createClient()
 
   const [bot, setBot] = useState<Bot | null>(null)
   const [loading, setLoading] = useState(true)
@@ -35,6 +29,7 @@ export default function BotDetailPage() {
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
 
   // Editable fields
   const [name, setName] = useState('')
@@ -42,6 +37,10 @@ export default function BotDetailPage() {
   const [primaryColor, setPrimaryColor] = useState('#6366f1')
 
   useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) setUserEmail(user.email)
+    })
+
     fetch(`/api/bots/${botId}`)
       .then(r => r.json())
       .then(data => {
@@ -53,7 +52,7 @@ export default function BotDetailPage() {
         }
         setLoading(false)
       })
-  }, [botId])
+  }, [botId, supabase])
 
   const VERCEL_URL = process.env.NEXT_PUBLIC_APP_URL || 'YOUR_VERCEL_URL'
   const scriptTag = `<script\n  src="${VERCEL_URL}/widget.js"\n  data-bot-id="${botId}">\n</script>`
@@ -61,16 +60,11 @@ export default function BotDetailPage() {
   async function handleSave() {
     setSaving(true)
     setSaved(false)
-
-    // We only allow updating name, systemPrompt, primaryColor
-    // For a full update API we'd need a PATCH /api/bots/[botId] route
-    // For now we'll use a simple fetch
     const res = await fetch(`/api/bots/${botId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, systemPrompt, primaryColor }),
     })
-
     setSaving(false)
     if (res.ok) {
       setSaved(true)
@@ -91,211 +85,214 @@ export default function BotDetailPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const PROVIDER_COLORS: Record<string, string> = {
-    gemini: '#1a73e8',
-    openai: '#10a37f',
-    anthropic: '#d97706',
+  const getProviderStyles = (provider: string) => {
+    const p = provider.toLowerCase()
+    if (p === 'gemini') return { backgroundColor: '#172554', color: '#93c5fd' }
+    if (p === 'openai') return { backgroundColor: '#052e16', color: '#86efac' }
+    if (p === 'anthropic') return { backgroundColor: '#431407', color: '#fdba74' }
+    return { backgroundColor: 'transparent', color: '#71717a', border: '1px solid #1c1c1c' }
   }
 
   if (loading) return (
-    <div style={{
-      minHeight: '100vh', background: '#080809',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#3a3a48', fontFamily: 'system-ui', fontSize: 13,
-    }}>
+    <div style={{ minHeight: '100vh', background: '#0f0f0f', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717a', fontFamily: 'system-ui', fontSize: 13 }}>
       Loading...
     </div>
   )
 
   if (!bot) return (
-    <div style={{
-      minHeight: '100vh', background: '#080809',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#f87171', fontFamily: 'system-ui', fontSize: 13,
-    }}>
-      Bot not found. <Link href="/dashboard" style={{ color: '#6366f1', marginLeft: 8 }}>Back to dashboard</Link>
+    <div style={{ minHeight: '100vh', background: '#0f0f0f', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f87171', fontFamily: 'system-ui', fontSize: 13 }}>
+      Bot not found. <Link href="/dashboard" style={{ color: '#ededed', marginLeft: 8 }}>Back to dashboard</Link>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080809', fontFamily: 'system-ui' }}>
-
-      {/* Top bar */}
-      <div style={{
-        height: 52, display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', padding: '0 24px',
-        borderBottom: '1px solid #111115', background: '#080809',
-        position: 'sticky', top: 0, zIndex: 10,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Link href="/dashboard" style={{ textDecoration: 'none' }}>
-            <span style={{ color: '#3a3a48', fontSize: 12, cursor: 'pointer' }}>← Dashboard</span>
+    <div className="flex min-h-screen font-sans" style={{ backgroundColor: '#0f0f0f', color: '#ededed' }}>
+      
+      {/* ── Sidebar ── */}
+      <aside className="fixed left-0 top-0 bottom-0 flex flex-col p-4 w-[200px] h-screen font-sans text-sm font-medium tracking-tight z-50" style={{ backgroundColor: '#0f0f0f', borderRight: '1px solid #1c1c1c' }}>
+        <div className="flex items-center gap-3 mb-8 px-2">
+          <div className="w-6 h-6 rounded flex items-center justify-center shadow-none" style={{ backgroundColor: '#ededed' }}>
+            <Bolt className="h-4 w-4" style={{ color: '#0f0f0f', fill: '#0f0f0f' }} />
+          </div>
+          <span className="text-lg font-bold tracking-tighter" style={{ color: '#ededed' }}>widgetforge</span>
+        </div>
+        
+        <nav className="flex-1 space-y-1">
+          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200" style={{ backgroundColor: '#1c1c1c', color: '#ededed' }}>
+            <LayoutDashboard className="h-4 w-4" />
+            Dashboard
           </Link>
-          <span style={{ color: '#1c1c22' }}>|</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <div style={{
-              width: 8, height: 8, borderRadius: '50%',
-              background: primaryColor,
-            }} />
-            <span style={{ color: '#dddde8', fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>
-              {name}
+          <Link href="#" className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200" style={{ color: '#71717a' }}>
+            <Settings className="h-4 w-4" />
+            Settings
+          </Link>
+        </nav>
+        
+        <div className="mt-auto space-y-4 pt-4 border-t" style={{ borderTop: '1px solid #1c1c1c' }}>
+          <div className="space-y-1">
+            <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
+              <Book className="h-4 w-4" />
+              Documentation
+            </Link>
+            <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
+              <HelpCircle className="h-4 w-4" />
+              Support
+            </Link>
+          </div>
+          <div className="p-3 rounded-lg border" style={{ backgroundColor: '#0f0f0f', border: '1px solid #1c1c1c' }}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] uppercase tracking-widest font-mono" style={{ color: '#3f3f46' }}>Status</span>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#052e16' }}></span>
+            </div>
+            <div className="text-[11px] truncate font-mono" style={{ color: '#71717a' }}>{userEmail || 'user@example.com'}</div>
+            <div className="inline-flex items-center px-1.5 py-0.5 mt-2 rounded border text-[10px] font-mono uppercase tracking-wider" style={{ backgroundColor: '#1c1c1c', borderColor: '#1c1c1c', color: '#ededed' }}>
+              Free Tier
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Main Content Area ── */}
+      <main className="flex-1 ml-[200px] flex flex-col min-h-screen">
+        
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-40 flex items-center justify-between px-6 h-14 w-full border-b" style={{ backgroundColor: '#0f0f0f', borderBottom: '1px solid #1c1c1c' }}>
+          <div className="flex items-center gap-4">
+            <nav className="flex items-center text-[11px] font-mono" style={{ color: '#71717a' }}>
+              <Link href="/dashboard" className="cursor-pointer transition-colors hover:opacity-80" style={{ color: '#71717a' }}>widgetforge</Link>
+              <span className="mx-2 opacity-40">›</span>
+              <Link href="/dashboard" className="cursor-pointer transition-colors hover:opacity-80" style={{ color: '#71717a' }}>Dashboard</Link>
+              <span className="mx-2 opacity-40">›</span>
+              <span style={{ color: '#ededed' }}>{name || bot.name}</span>
+            </nav>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-mono tracking-tighter ml-2" style={{ backgroundColor: '#0f0f0f', borderColor: '#1c1c1c', color: '#71717a' }}>
+              PRODUCTION
             </span>
           </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            style={{
-              fontSize: 11.5, color: '#f87171',
-              background: 'none', border: '1px solid #ef444420',
-              borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-            }}
-          >
-            {deleting ? 'Deleting...' : 'Delete bot'}
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            style={{
-              fontSize: 11.5,
-              color: saved ? '#22c55e' : '#fff',
-              background: saved ? '#22c55e18' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              border: saved ? '1px solid #22c55e33' : 'none',
-              borderRadius: 6, padding: '4px 14px',
-              cursor: saving ? 'wait' : 'pointer', fontWeight: 600,
-            }}
-          >
-            {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save changes'}
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-        {/* Stats row */}
-        <div style={{
-          display: 'flex', gap: 10,
-        }}>
-          {[
-            { label: 'Provider', value: bot.provider, color: PROVIDER_COLORS[bot.provider] },
-            { label: 'Model', value: bot.model, color: '#3a3a48' },
-            { label: 'Messages', value: bot.messageCount.toString(), color: '#3a3a48' },
-            { label: 'Bot ID', value: bot.id, color: '#2a2a35' },
-          ].map(stat => (
-            <div key={stat.label} style={{
-              flex: 1, background: '#0c0c0e', border: '1px solid #1c1c22',
-              borderRadius: 10, padding: '11px 14px',
-            }}>
-              <div style={{ fontSize: 9.5, color: '#2a2a35', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
-                {stat.label}
-              </div>
-              <div style={{
-                fontSize: 11.5, fontFamily: 'monospace', color: stat.color,
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Bot name */}
-        <div style={{ background: '#0c0c0e', border: '1px solid #1c1c22', borderRadius: 12, padding: 18 }}>
-          <label style={{ fontSize: 11, color: '#3a3a48', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 8 }}>
-            Bot Name
-          </label>
-          <input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              background: '#101012', border: '1px solid #1c1c22',
-              borderRadius: 7, padding: '8px 11px',
-              color: '#dddde8', fontSize: 13, outline: 'none',
-              fontFamily: 'system-ui',
-            }}
-          />
-        </div>
-
-        {/* System prompt */}
-        <div style={{ background: '#0c0c0e', border: '1px solid #1c1c22', borderRadius: 12, padding: 18 }}>
-          <label style={{ fontSize: 11, color: '#3a3a48', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 8 }}>
-            System Prompt
-          </label>
-          <textarea
-            value={systemPrompt}
-            onChange={e => setSystemPrompt(e.target.value)}
-            rows={6}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              background: '#101012', border: '1px solid #1c1c22',
-              borderRadius: 7, padding: '8px 11px',
-              color: '#dddde8', fontSize: 12.5, outline: 'none',
-              resize: 'vertical', fontFamily: 'system-ui', lineHeight: 1.55,
-            }}
-          />
-          <div style={{ fontSize: 9.5, color: '#2a2a35', textAlign: 'right', marginTop: 4 }}>
-            {systemPrompt.length} chars
-          </div>
-        </div>
-
-        {/* Primary color */}
-        <div style={{ background: '#0c0c0e', border: '1px solid #1c1c22', borderRadius: 12, padding: 18 }}>
-          <label style={{ fontSize: 11, color: '#3a3a48', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 8 }}>
-            Widget Color
-          </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input
-              type="color"
-              value={primaryColor}
-              onChange={e => setPrimaryColor(e.target.value)}
-              style={{ width: 36, height: 36, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'none' }}
-            />
-            <span style={{ fontSize: 12, fontFamily: 'monospace', color: '#3a3a48' }}>{primaryColor}</span>
-          </div>
-        </div>
-
-        {/* Script tag */}
-        <div style={{ background: '#0c0c0e', border: '1px solid #1c1c22', borderRadius: 12, padding: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <label style={{ fontSize: 11, color: '#3a3a48', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Script Tag
-            </label>
-            <button
-              onClick={copyScriptTag}
-              style={{
-                fontSize: 11, padding: '3px 10px', borderRadius: 5,
-                border: copied ? '1px solid #22c55e44' : '1px solid #1c1c22',
-                background: copied ? '#22c55e0e' : '#111114',
-                color: copied ? '#22c55e' : '#3a3a48',
-                cursor: 'pointer', transition: 'all 0.15s ease',
-              }}
+          
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-4 py-1.5 text-xs font-bold rounded-md transition-all active:scale-95 disabled:opacity-50"
+              style={{ backgroundColor: 'transparent', color: '#f87171', border: '1px solid #f87171' }}
             >
-              {copied ? '✓ Copied' : '⎘ Copy'}
+              {deleting ? 'Deleting...' : 'Delete bot'}
+            </button>
+            <button 
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-1.5 text-xs font-bold rounded-md transition-all active:scale-95 disabled:opacity-50"
+              style={{ backgroundColor: '#ededed', color: '#0f0f0f' }}
+            >
+              {saving ? 'Saving...' : saved ? 'Saved' : 'Save changes'}
             </button>
           </div>
-          <div style={{
-            background: '#070709', border: '1px solid #111115',
-            borderRadius: 8, padding: '12px 14px',
-          }}>
-            <pre style={{
-              margin: 0, fontSize: 11.5,
-              fontFamily: "'SF Mono', 'Fira Code', monospace",
-              color: '#6a7aa8', whiteSpace: 'pre-wrap',
-              wordBreak: 'break-all', lineHeight: 1.7,
-            }}>
-              {scriptTag}
-            </pre>
+        </header>
+
+        {/* Page Content */}
+        <div className="p-8 w-full mx-auto" style={{ maxWidth: 720 }}>
+          
+          {/* Stats Row */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="flex flex-col p-4 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <span className="text-[10px] mb-2 uppercase tracking-widest font-mono" style={{ color: '#3f3f46' }}>Provider</span>
+              <div className="mt-auto">
+                <span className="px-2 py-0.5 text-[10px] font-mono rounded uppercase tracking-wider" style={getProviderStyles(bot.provider)}>
+                  {bot.provider}
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex flex-col p-4 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <span className="text-[10px] mb-2 uppercase tracking-widest font-mono" style={{ color: '#3f3f46' }}>Model</span>
+              <span className="text-sm font-mono uppercase truncate" style={{ color: '#ededed' }}>{bot.model}</span>
+            </div>
+            
+            <div className="flex flex-col p-4 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <span className="text-[10px] mb-2 uppercase tracking-widest font-mono" style={{ color: '#3f3f46' }}>Messages</span>
+              <span className="text-xl font-medium tracking-tight" style={{ color: '#ededed' }}>{bot.messageCount.toLocaleString()}</span>
+            </div>
+            
+            <div className="flex flex-col p-4 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <span className="text-[10px] mb-2 uppercase tracking-widest font-mono" style={{ color: '#3f3f46' }}>Bot ID</span>
+              <span className="text-xs font-mono truncate" style={{ color: '#71717a' }}>{bot.id}</span>
+            </div>
           </div>
-          <div style={{ fontSize: 10.5, color: '#2a2a35', marginTop: 10 }}>
-            🔒 API key and system prompt are stored encrypted. Only the bot ID is exposed.
+
+          <div className="space-y-6">
+            {/* Bot Name */}
+            <div className="p-5 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <label className="block text-xs font-medium mb-2 uppercase tracking-widest font-mono" style={{ color: '#71717a' }}>Bot Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 rounded-md outline-none text-sm transition-colors"
+                style={{ backgroundColor: '#0f0f0f', color: '#ededed', border: '1px solid #1c1c1c' }}
+                onFocus={(e) => e.target.style.borderColor = '#71717a'}
+                onBlur={(e) => e.target.style.borderColor = '#1c1c1c'}
+              />
+            </div>
+
+            {/* System Prompt */}
+            <div className="p-5 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <label className="block text-xs font-medium mb-2 uppercase tracking-widest font-mono" style={{ color: '#71717a' }}>System Prompt</label>
+              <textarea
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                rows={6}
+                className="w-full px-3 py-3 rounded-md outline-none text-sm transition-colors resize-y min-h-[120px]"
+                style={{ backgroundColor: '#0f0f0f', color: '#ededed', border: '1px solid #1c1c1c' }}
+                onFocus={(e) => e.target.style.borderColor = '#71717a'}
+                onBlur={(e) => e.target.style.borderColor = '#1c1c1c'}
+              />
+              <div className="mt-2 text-right text-[11px] font-mono" style={{ color: '#71717a' }}>
+                {systemPrompt.length} characters
+              </div>
+            </div>
+
+            {/* Widget Color */}
+            <div className="p-5 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <label className="block text-xs font-medium mb-2 uppercase tracking-widest font-mono" style={{ color: '#71717a' }}>Widget Color</label>
+              <div className="flex items-center gap-4 mt-3">
+                <input
+                  type="color"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="w-10 h-10 rounded cursor-pointer border-0 p-0"
+                  style={{ backgroundColor: 'transparent' }}
+                />
+                <div className="px-3 py-1.5 rounded-md text-sm font-mono" style={{ backgroundColor: '#0f0f0f', color: '#ededed', border: '1px solid #1c1c1c' }}>
+                  {primaryColor.toUpperCase()}
+                </div>
+              </div>
+            </div>
+
+            {/* Script Tag */}
+            <div className="p-5 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-xs font-medium uppercase tracking-widest font-mono" style={{ color: '#71717a' }}>Script Tag</label>
+                <button
+                  onClick={copyScriptTag}
+                  className="px-3 py-1 text-xs font-medium rounded transition-colors"
+                  style={{ backgroundColor: 'transparent', color: copied ? '#86efac' : '#71717a', border: '1px solid #1c1c1c' }}
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              <pre className="p-4 rounded-md text-xs font-mono overflow-auto mb-3" style={{ backgroundColor: '#0f0f0f', color: '#71717a', border: '1px solid #1c1c1c' }}>
+                {scriptTag}
+              </pre>
+              <div className="flex items-center gap-2 text-[11px]" style={{ color: '#3f3f46' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>API key stored encrypted. Only bot ID exposed.</span>
+              </div>
+            </div>
+            
           </div>
         </div>
-
-      </div>
+      </main>
     </div>
   )
 }
