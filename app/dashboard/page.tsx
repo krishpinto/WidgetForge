@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { MoreVertical, LayoutDashboard, Settings, Bot, Plus, Trash2, Book, HelpCircle, Terminal, Bell, Bolt } from 'lucide-react'
+import Navbar from '@/components/Navbar'
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -119,42 +120,7 @@ export default function DashboardPage() {
       <main className="flex-1 ml-[200px] flex flex-col min-h-screen">
         
         {/* Top Navbar */}
-        <header className="sticky top-0 z-40 flex items-center justify-between px-6 h-14 w-full backdrop-blur-md border-b" style={{ backgroundColor: '#0f0f0f', borderBottom: '1px solid #1c1c1c' }}>
-          <div className="flex items-center gap-4">
-            <nav className="flex items-center text-[10px] font-mono uppercase tracking-widest" style={{ color: '#71717a' }}>
-              <span className="cursor-pointer transition-colors" style={{ color: '#71717a' }}>widgetforge</span>
-              <span className="mx-2 opacity-40">/</span>
-              <span style={{ color: '#ededed' }}>Dashboard</span>
-            </nav>
-            <div className="h-4 w-[1px] mx-2" style={{ backgroundColor: '#1c1c1c' }}></div>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-mono tracking-tighter" style={{ backgroundColor: '#0f0f0f', borderColor: '#1c1c1c', color: '#71717a' }}>
-              PRODUCTION
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4 text-[10px] font-mono uppercase tracking-widest" style={{ color: '#71717a' }}>
-              <span className="cursor-pointer transition-colors">Docs</span>
-              <span className="cursor-pointer transition-colors">API</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="p-1.5 transition-colors" style={{ color: '#71717a' }}>
-                <Terminal className="h-4 w-4" />
-              </button>
-              <button className="p-1.5 transition-colors relative" style={{ color: '#71717a' }}>
-                <Bell className="h-4 w-4" />
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#ededed' }}></span>
-              </button>
-              <button 
-                onClick={handleLogout}
-                className="ml-2 px-4 py-1.5 text-xs font-bold rounded-md transition-all active:scale-95"
-                style={{ backgroundColor: '#ededed', color: '#0f0f0f' }}
-              >
-                Sign out
-              </button>
-            </div>
-          </div>
-        </header>
+        <Navbar userEmail={userEmail} activePage="dashboard" />
 
         {/* Page Content */}
         <div className="p-8 max-w-6xl mx-auto w-full">

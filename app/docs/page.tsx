@@ -9,6 +9,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Navbar from '@/components/Navbar'
 
 // ── Types ──
 interface Section {
@@ -923,28 +924,7 @@ export default function DocsPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0c0c0c', color: '#ededed', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
 
-      {/* Top navbar */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', borderBottom: '1px solid #1c1c1c', background: '#0c0c0c' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-            <div style={{ width: 26, height: 26, borderRadius: 6, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 2L9.5 9.5H2L8 13.5L5.5 21L12 17L18.5 21L16 13.5L22 9.5H14.5L12 2Z"/></svg>
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: '#ededed', letterSpacing: '-0.02em' }}>widgetforge</span>
-            <span style={{ fontSize: 11, color: '#3f3f46', background: '#1c1c1c', padding: '1px 6px', borderRadius: 4, fontFamily: 'monospace' }}>docs</span>
-          </Link>
-          <nav style={{ display: 'flex', gap: 20 }}>
-            {['Start', 'How it works', 'API', 'Deploy'].map(l => (
-              <button key={l} onClick={() => l === 'How it works' && setActive('how-it-works')} style={{ fontSize: 13, color: l === 'How it works' ? '#ededed' : '#71717a', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>{l}</button>
-            ))}
-          </nav>
-        </div>
-        <Link href="/dashboard">
-          <button style={{ padding: '6px 14px', borderRadius: 6, background: '#3ecf8e', color: '#0c0c0c', fontSize: 12.5, fontWeight: 600, border: 'none', cursor: 'pointer' }}>
-            Dashboard
-          </button>
-        </Link>
-      </header>
+      <Navbar activePage="docs" />
 
       <div style={{ display: 'flex', maxWidth: 1400, margin: '0 auto' }}>
 
