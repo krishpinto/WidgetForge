@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, Shield, Key, Layers, Cpu, Zap, GitBranch,
-  Terminal, CheckCircle2, Bolt, Lock, Code2, Sparkles, Github, Star
+  Terminal, CheckCircle2, Bolt, Lock, Code2, Sparkles, Github, Star, User
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 
 
@@ -42,7 +43,25 @@ function useScrollReveal() {
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  const [isAuthChecking, setIsAuthChecking] = useState(true)
   const revealRef = useScrollReveal()
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        setUserEmail(user.email)
+        if (user.user_metadata?.avatar_url) {
+          setUserAvatar(user.user_metadata.avatar_url)
+        } else if (user.user_metadata?.picture) {
+          setUserAvatar(user.user_metadata.picture)
+        }
+      }
+      setIsAuthChecking(false)
+    })
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -164,15 +183,29 @@ export default function LandingPage() {
               <Star className="w-3.5 h-3.5" style={{ color: '#eab308', fill: '#eab308' }} />
             </a>
 
-            <Link href="/login" style={{ color: '#71717a' }} className="hover:text-white transition-colors hidden sm:block">
-              Sign in
-            </Link>
-            <Link href="/signup" 
-              style={{ backgroundColor: '#3ecf8e', color: '#0c0c0c' }} 
-              className="px-4 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center gap-2 font-semibold"
-            >
-              Start for free
-            </Link>
+            {isAuthChecking ? (
+              <div className="w-8 h-8 rounded-full border border-[#3f3f46] bg-[#1c1c1c] animate-pulse" />
+            ) : userEmail ? (
+              <Link href="/dashboard" className="w-8 h-8 rounded-full border border-[#3f3f46] bg-[#1c1c1c] overflow-hidden hover:border-[#71717a] transition-colors flex items-center justify-center">
+                {userAvatar ? (
+                  <img src={userAvatar} alt="Dashboard" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-4 h-4 text-[#71717a]" />
+                )}
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" style={{ color: '#71717a' }} className="hover:text-white transition-colors hidden sm:block">
+                  Sign in
+                </Link>
+                <Link href="/signup" 
+                  style={{ backgroundColor: '#3ecf8e', color: '#0c0c0c' }} 
+                  className="px-4 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center gap-2 font-semibold"
+                >
+                  Start for free
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

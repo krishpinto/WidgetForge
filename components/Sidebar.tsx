@@ -63,16 +63,6 @@ export default function Sidebar({ userEmail }: SidebarProps) {
               Documentation
             </span>
           </Link>
-
-          <a 
-            href="mailto:support@widgetforge.com" 
-            className="flex items-center gap-3 px-2.5 py-2 rounded-md transition-colors duration-200 text-[#71717a] hover:bg-white/5 hover:text-[#ededed]"
-          >
-            <HelpCircle {...iconProps} />
-            <span className="transition-opacity duration-200 whitespace-nowrap text-[13px] font-medium" style={{ opacity: isHovered ? 1 : 0 }}>
-              Support
-            </span>
-          </a>
         </nav>
         
         {/* Bottom Section (Settings & Status Box) */}

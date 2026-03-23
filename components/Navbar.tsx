@@ -48,7 +48,7 @@ export default function Navbar({ userEmail, onLogout }: NavbarProps) {
       <div className="flex items-center gap-3">
         
         {/* Logo / Org Selector */}
-        <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="w-6 h-6 rounded flex items-center justify-center bg-[#3ecf8e]">
             <Bolt className="w-4 h-4 text-[#0a0a0a] fill-[#0a0a0a]" />
           </div>
@@ -106,13 +106,19 @@ export default function Navbar({ userEmail, onLogout }: NavbarProps) {
 
         {/* Utility Icons */}
         <div className="flex items-center gap-1 border-r border-[#1c1c1c] pr-4 mr-1">
-          <button className="p-1.5 bg-transparent border-none text-[#71717a] rounded hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all">
+          <a href="mailto:krishpinto123@gmail.com" className="p-1.5 bg-transparent border-none text-[#71717a] rounded hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all">
             <HelpCircle className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 bg-transparent border-none text-[#71717a] rounded hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#ef4444] rounded-full border border-[#0a0a0a]" />
-          </button>
+          </a>
+          
+          <div className="relative group">
+            <button className="p-1.5 bg-transparent border-none text-[#71717a] rounded hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all">
+              <Bell className="w-4 h-4" />
+            </button>
+            <div className="absolute top-[calc(100%+8px)] right-0 w-64 bg-[#141414] border border-[#1c1c1c] rounded-lg shadow-2xl p-4 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+              <div className="text-[13px] font-semibold text-[#ededed] mb-1">Notifications</div>
+              <div className="text-xs text-[#71717a]">You're all caught up! No new notifications.</div>
+            </div>
+          </div>
         </div>
 
         {/* Profile Dropdown */}
