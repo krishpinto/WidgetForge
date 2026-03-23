@@ -3,20 +3,20 @@
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
 import { 
-  User, ChevronDown, Plug, LogOut, Settings, Book, Bolt, Github, Star 
+  User, ChevronDown, Plug, LogOut, Settings, Book, Bolt, Github, Star, Search, HelpCircle, Bell 
 } from 'lucide-react'
+import { ConnectModal } from './ConnectModal'
 
 interface NavbarProps {
   userEmail?: string
-  activePage?: 'dashboard' | 'docs' | 'other' | string
+  activePage?: string
   onLogout?: () => void
 }
 
-export default function Navbar({ userEmail, activePage = 'dashboard', onLogout }: NavbarProps) {
+export default function Navbar({ userEmail, onLogout }: NavbarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-
-  const formattedPage = activePage.charAt(0).toUpperCase() + activePage.slice(1)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -29,133 +29,118 @@ export default function Navbar({ userEmail, activePage = 'dashboard', onLogout }
   }, [])
 
   return (
-    <header style={{ 
-      position: 'sticky', top: 0, zIndex: 50, height: 52, 
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-      padding: '0 16px', borderBottom: '1px solid #1c1c1c', background: '#0c0c0c',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
+    <header className="sticky top-0 z-50 h-[52px] flex items-center justify-between px-4 border-b border-[#1c1c1c] bg-[#0a0a0a] font-sans">
       
       {/* ── Left: Logo & Breadcrumbs ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div className="flex items-center gap-3">
         
-        
-
-        {/* Divider */}
-        <div style={{ width: 1, height: 20, background: '#1c1c1c' }} />
-
-        {/* Breadcrumbs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, fontWeight: 500 }}>
-          <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }} className="group">
-            <span style={{ color: '#ededed', transition: 'color 0.2s' }} className="group-hover:text-white">
-              Personal
-            </span>
-            <span style={{ 
-              fontSize: 10, padding: '1px 6px', borderRadius: 9999, 
-              border: '1px solid #3f3f46', color: '#71717a', fontWeight: 600, letterSpacing: '0.05em'
-            }}>
-              FREE
-            </span>
-          </Link>
-
-          <span style={{ color: '#3f3f46', fontSize: 14 }}>/</span>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} className="group">
-            <div style={{ width: 16, height: 16, borderRadius: 4, background: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: 8, height: 8, borderRadius: 2, background: '#ededed' }} />
-            </div>
-            <span style={{ color: '#ededed', transition: 'color 0.2s' }} className="group-hover:text-white">
-              {formattedPage}
-            </span>
-            <span style={{ 
-              fontSize: 10, padding: '1px 6px', borderRadius: 9999, 
-              border: '1px solid #ca8a04', color: '#eab308', background: 'rgba(202, 138, 4, 0.1)',
-              fontWeight: 600, letterSpacing: '0.05em'
-            }}>
-              PRODUCTION
-            </span>
-            
+        {/* Logo / Org Selector */}
+        <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <div className="w-6 h-6 rounded flex items-center justify-center bg-[#3ecf8e]">
+            <Bolt className="w-4 h-4 text-[#0a0a0a] fill-[#0a0a0a]" />
           </div>
+          <span className="text-[#ededed] font-semibold text-sm mr-1">WidgetForge</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-[#3f3f46] text-[#71717a] font-semibold tracking-wider">
+            FREE
+          </span>
+          <ChevronDown className="w-3.5 h-3.5 text-[#71717a] ml-1" />
+        </Link>
 
-          <button style={{ 
-            display: 'flex', alignItems: 'center', gap: 6, marginLeft: 8,
-            padding: '4px 10px', borderRadius: 6, border: '1px solid #3f3f46', 
-            background: 'transparent', color: '#ededed', fontSize: 12, fontWeight: 500,
-            cursor: 'pointer', transition: 'background 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.background = '#1c1c1c'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-          >
-            <Plug className="w-3 h-3" />
-            Connect
-          </button>
+        {/* Separator */}
+        <span className="text-[#3f3f46] text-sm">/</span>
+
+        {/* Project Breadcrumb */}
+        <div className="flex items-center gap-2 cursor-pointer group">
+          <div className="w-4 h-4 rounded bg-[#1c1c1c] flex items-center justify-center border border-[#3f3f46]">
+            <div className="w-2 h-2 rounded-sm bg-[#ededed]" />
+          </div>
+          <span className="text-[#ededed] transition-colors group-hover:text-white text-sm font-medium">
+            widget
+          </span>
+          <ChevronDown className="w-3.5 h-3.5 text-[#71717a]" />
         </div>
+
+        {/* Separator */}
+        <span className="text-[#3f3f46] text-sm">/</span>
+
+        {/* Environment Breadcrumb */}
+        <div className="flex items-center gap-2 cursor-pointer group">
+          <span className="text-[#ededed] transition-colors group-hover:text-white text-sm font-medium">
+            main
+          </span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-[#ca8a04] text-[#eab308] bg-[#ca8a04]/10 font-semibold tracking-wider">
+            PRODUCTION
+          </span>
+          <ChevronDown className="w-3.5 h-3.5 text-[#71717a]" />
+        </div>
+
+        {/* Connect Button */}
+        <button 
+          onClick={() => setIsConnectModalOpen(true)}
+          className="flex items-center gap-1.5 ml-2 px-2.5 py-1 rounded border border-[#3f3f46] bg-transparent hover:bg-[#1c1c1c] text-[#ededed] text-[13px] font-medium transition-colors"
+        >
+          <Plug className="w-3.5 h-3.5" />
+          Connect
+        </button>
       </div>
 
       {/* ── Right: Utilities & Profile ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div className="flex items-center gap-4">
         
-        {/* GitHub Star Button */}
-        <a 
-          href="https://github.com/krishpinto/WidgetForge" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          style={{ 
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '6px 12px', borderRadius: 6, border: '1px solid #27272a', 
-            background: '#141414', color: '#ededed', fontSize: 13, fontWeight: 500,
-            textDecoration: 'none', transition: 'all 0.2s'
-          }}
-          className="hover:bg-[#1c1c1c] hover:border-[#3f3f46] hidden sm:flex"
-        >
-          <Github className="w-4 h-4" />
-          <span>Star on GitHub</span>
-          <Star className="w-3.5 h-3.5" style={{ color: '#eab308', fill: '#eab308' }} />
-        </a>
+      
+
+        
+
+        {/* Utility Icons */}
+        <div className="flex items-center gap-1 border-r border-[#1c1c1c] pr-4 mr-1">
+          <button className="p-1.5 bg-transparent border-none text-[#71717a] rounded hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all">
+            <HelpCircle className="w-4 h-4" />
+          </button>
+          <button className="p-1.5 bg-transparent border-none text-[#71717a] rounded hover:text-[#ededed] hover:bg-[#1c1c1c] transition-all relative">
+            <Bell className="w-4 h-4" />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#ef4444] rounded-full border border-[#0a0a0a]" />
+          </button>
+        </div>
 
         {/* Profile Dropdown */}
-        <div ref={dropdownRef} style={{ position: 'relative' }}>
+        <div ref={dropdownRef} className="relative">
           <button 
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            style={{ 
-              width: 28, height: 28, borderRadius: '50%', 
-              background: '#1c1c1c', border: '1px solid #3f3f46', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', padding: 0, overflow: 'hidden'
-            }}
+            className="w-7 h-7 rounded-full bg-[#1c1c1c] border border-[#3f3f46] flex items-center justify-center cursor-pointer p-0 overflow-hidden hover:border-[#71717a] transition-colors"
           >
-            <User className="w-4 h-4" style={{ color: '#71717a' }} />
+            <User className="w-4 h-4 text-[#71717a]" />
           </button>
 
           {isProfileOpen && (
-            <div style={{ 
-              position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 220,
-              background: '#141414', border: '1px solid #1c1c1c', borderRadius: 8,
-              boxShadow: '0 10px 30px -10px rgba(0,0,0,0.5)', padding: 4, zIndex: 50
-            }}>
-              <div style={{ padding: '10px 12px', borderBottom: '1px solid #1c1c1c', marginBottom: 4 }}>
-                <div style={{ fontSize: 11, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Signed in as</div>
-                <div style={{ fontSize: 13, color: '#ededed', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[220px] bg-[#141414] border border-[#1c1c1c] rounded-lg shadow-2xl p-1 z-50">
+              <div className="p-3 border-b border-[#1c1c1c] mb-1">
+                <div className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider mb-1">Signed in as</div>
+                <div className="text-[13px] text-[#ededed] font-medium whitespace-nowrap overflow-hidden text-ellipsis">
                   {userEmail || 'user@example.com'}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Link href="/dashboard/settings" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', fontSize: 13, color: '#ededed', textDecoration: 'none', borderRadius: 4 }} className="hover:bg-[#1c1c1c] transition-colors">
-                  <Settings className="w-4 h-4" style={{ color: '#71717a' }} />
+              <div className="flex flex-col gap-0.5">
+                <a 
+                  href="https://github.com/krishpinto/WidgetForge" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#ededed] no-underline rounded hover:bg-[#1c1c1c] transition-colors"
+                >
+                  <Github className="w-4 h-4 text-[#71717a]" />
+                  Star on GitHub
+                  <Star className="w-3.5 h-3.5 text-[#eab308] fill-[#eab308] ml-auto" />
+                </a>
+                <Link href="/dashboard/settings" className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#ededed] no-underline rounded hover:bg-[#1c1c1c] transition-colors">
+                  <Settings className="w-4 h-4 text-[#71717a]" />
                   Account Settings
-                </Link>
-                <Link href="/docs" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', fontSize: 13, color: '#ededed', textDecoration: 'none', borderRadius: 4 }} className="hover:bg-[#1c1c1c] transition-colors">
-                  <Book className="w-4 h-4" style={{ color: '#71717a' }} />
-                  Documentation
                 </Link>
                 <button 
                   onClick={() => {
                     setIsProfileOpen(false);
                     if (onLogout) onLogout();
                   }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', fontSize: 13, color: '#f87171', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: 4, width: '100%', textAlign: 'left' }} 
-                  className="hover:bg-[#2a1414] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#f87171] bg-transparent border-none cursor-pointer rounded w-full text-left hover:bg-[#2a1414] transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign out
@@ -166,6 +151,11 @@ export default function Navbar({ userEmail, activePage = 'dashboard', onLogout }
         </div>
         
       </div>
+      
+      <ConnectModal 
+        isOpen={isConnectModalOpen} 
+        onClose={() => setIsConnectModalOpen(false)} 
+      />
     </header>
   )
 }
