@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { LayoutDashboard, Settings, Bolt, Book, HelpCircle } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Sidebar from '@/components/Sidebar'
+import AI_Prompt from '@/components/kokonutui/ai-prompt'
 
 interface Bot {
   id: string
@@ -204,21 +205,11 @@ export default function BotDetailPage() {
             </div>
 
             {/* System Prompt */}
-            <div className="p-5 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
-              <label className="block text-xs font-medium mb-2 uppercase tracking-widest font-mono" style={{ color: '#71717a' }}>System Prompt</label>
-              <textarea
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                rows={6}
-                className="w-full px-3 py-3 rounded-md outline-none text-sm transition-colors resize-y min-h-[120px]"
-                style={{ backgroundColor: '#0f0f0f', color: '#ededed', border: '1px solid #1c1c1c' }}
-                onFocus={(e) => e.target.style.borderColor = '#71717a'}
-                onBlur={(e) => e.target.style.borderColor = '#1c1c1c'}
-              />
-              <div className="mt-2 text-right text-[11px] font-mono" style={{ color: '#71717a' }}>
-                {systemPrompt.length} characters
-              </div>
-            </div>
+            <AI_Prompt 
+              value={systemPrompt}
+              onChange={setSystemPrompt}
+              placeholder="e.g. You are a helpful technical support bot for WidgetForge..."
+            />
 
             {/* Widget Color */}
             <div className="p-5 rounded-lg border shadow-none" style={{ backgroundColor: '#141414', borderColor: '#1c1c1c' }}>
