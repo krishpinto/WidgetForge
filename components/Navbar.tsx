@@ -6,6 +6,7 @@ import {
   User, ChevronDown, Plug, LogOut, Settings, Book, Bolt, Github, Star, Search, HelpCircle, Bell 
 } from 'lucide-react'
 import { ConnectModal } from './ConnectModal'
+import { createClient } from '@/lib/supabase/client'
 
 interface NavbarProps {
   userEmail?: string
@@ -16,7 +17,19 @@ interface NavbarProps {
 export default function Navbar({ userEmail, onLogout }: NavbarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false)
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.user_metadata?.avatar_url) {
+        setUserAvatar(user.user_metadata.avatar_url)
+      } else if (user?.user_metadata?.picture) {
+        setUserAvatar(user.user_metadata.picture)
+      }
+    })
+  }, [])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -43,7 +56,7 @@ export default function Navbar({ userEmail, onLogout }: NavbarProps) {
           <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-[#3f3f46] text-[#71717a] font-semibold tracking-wider">
             FREE
           </span>
-          <ChevronDown className="w-3.5 h-3.5 text-[#71717a] ml-1" />
+          
         </Link>
 
         {/* Separator */}
@@ -57,7 +70,7 @@ export default function Navbar({ userEmail, onLogout }: NavbarProps) {
           <span className="text-[#ededed] transition-colors group-hover:text-white text-sm font-medium">
             widget
           </span>
-          <ChevronDown className="w-3.5 h-3.5 text-[#71717a]" />
+         
         </div>
 
         {/* Separator */}
@@ -71,7 +84,7 @@ export default function Navbar({ userEmail, onLogout }: NavbarProps) {
           <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-[#ca8a04] text-[#eab308] bg-[#ca8a04]/10 font-semibold tracking-wider">
             PRODUCTION
           </span>
-          <ChevronDown className="w-3.5 h-3.5 text-[#71717a]" />
+         
         </div>
 
         {/* Connect Button */}
@@ -108,7 +121,11 @@ export default function Navbar({ userEmail, onLogout }: NavbarProps) {
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="w-7 h-7 rounded-full bg-[#1c1c1c] border border-[#3f3f46] flex items-center justify-center cursor-pointer p-0 overflow-hidden hover:border-[#71717a] transition-colors"
           >
-            <User className="w-4 h-4 text-[#71717a]" />
+            {userAvatar ? (
+              <img src={userAvatar} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-4 h-4 text-[#71717a]" />
+            )}
           </button>
 
           {isProfileOpen && (

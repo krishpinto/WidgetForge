@@ -117,7 +117,7 @@ export default function BotDetailPage() {
       
       <Navbar userEmail={userEmail} onLogout={handleLogout} />
       
-      <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 52px)' }}>
+      <div className="flex flex-1">
         <Sidebar userEmail={userEmail} />
 
         {/* ── Main Content Area ── */}

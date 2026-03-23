@@ -927,7 +927,7 @@ export default function DocsPage() {
 
       <Navbar activePage="docs" />
 
-      <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 52px)' }}>
+      <div className="flex flex-1">
         <Sidebar />
 
         {/* Scrollable Container for Docs */}
@@ -936,7 +936,7 @@ export default function DocsPage() {
           <div style={{ display: 'flex', width: '100%', maxWidth: 1400 }}>
 
             {/* Left sidebar (Docs Sections) */}
-            <aside style={{ width: 240, flexShrink: 0, borderRight: '1px solid #1c1c1c', padding: '28px 16px 28px 24px', position: 'sticky', top: 0, height: 'calc(100vh - 52px)', overflowY: 'auto' }}>
+            <aside style={{ width: 240, flexShrink: 0, borderRight: '1px solid #1c1c1c', padding: '28px 16px 28px 24px', position: 'sticky', top: 52, height: 'calc(100vh - 52px)', overflowY: 'auto' }}>
           {SIDEBAR_GROUPS.map(group => (
             <div key={group.title} style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 10.5, fontWeight: 600, color: '#3f3f46', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'monospace', marginBottom: 8, paddingLeft: 10 }}>
@@ -971,7 +971,7 @@ export default function DocsPage() {
         </main>
 
         {/* Right TOC */}
-        <aside style={{ width: 200, flexShrink: 0, padding: '40px 24px', position: 'sticky', top: 0, height: 'calc(100vh - 52px)', overflowY: 'auto' }}>
+        <aside style={{ width: 200, flexShrink: 0, padding: '40px 24px', position: 'sticky', top: 52, height: 'calc(100vh - 52px)', overflowY: 'auto' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#ededed', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>
             On this page
           </div>
