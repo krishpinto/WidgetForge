@@ -10,6 +10,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
+import Sidebar from '@/components/Sidebar'
 
 // ── Types ──
 interface Section {
@@ -922,14 +923,20 @@ export default function DocsPage() {
   const [active, setActive] = useState('introduction')
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0c0c', color: '#ededed', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a] font-sans">
 
       <Navbar activePage="docs" />
 
-      <div style={{ display: 'flex', maxWidth: 1400, margin: '0 auto' }}>
+      <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 52px)' }}>
+        <Sidebar />
 
-        {/* Left sidebar */}
-        <aside style={{ width: 240, flexShrink: 0, borderRight: '1px solid #1c1c1c', padding: '28px 16px 28px 24px', position: 'sticky', top: 56, height: 'calc(100vh - 56px)', overflowY: 'auto' }}>
+        {/* Scrollable Container for Docs */}
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center', background: '#0c0c0c', color: '#ededed' }}>
+          
+          <div style={{ display: 'flex', width: '100%', maxWidth: 1400 }}>
+
+            {/* Left sidebar (Docs Sections) */}
+            <aside style={{ width: 240, flexShrink: 0, borderRight: '1px solid #1c1c1c', padding: '28px 16px 28px 24px', position: 'sticky', top: 0, height: 'calc(100vh - 52px)', overflowY: 'auto' }}>
           {SIDEBAR_GROUPS.map(group => (
             <div key={group.title} style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 10.5, fontWeight: 600, color: '#3f3f46', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'monospace', marginBottom: 8, paddingLeft: 10 }}>
@@ -964,7 +971,7 @@ export default function DocsPage() {
         </main>
 
         {/* Right TOC */}
-        <aside style={{ width: 200, flexShrink: 0, padding: '40px 24px', position: 'sticky', top: 56, height: 'calc(100vh - 56px)', overflowY: 'auto' }}>
+        <aside style={{ width: 200, flexShrink: 0, padding: '40px 24px', position: 'sticky', top: 0, height: 'calc(100vh - 52px)', overflowY: 'auto' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#ededed', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>
             On this page
           </div>
@@ -973,7 +980,9 @@ export default function DocsPage() {
               {item}
             </div>
           ))}
-        </aside>
+          </aside>
+          </div>
+        </div>
       </div>
     </div>
   )

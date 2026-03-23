@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { LayoutDashboard, Settings, Book, HelpCircle, Bolt, ShieldAlert, KeyRound, Palette } from 'lucide-react'
 import Navbar from '@/components/Navbar'
+import Sidebar from '@/components/Sidebar'
 
 interface Bot {
   id: string
@@ -96,58 +97,17 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen font-sans" style={{ backgroundColor: '#0f0f0f', color: '#ededed' }}>
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a] font-sans text-[#ededed]">
       
-      {/* ── Sidebar ── */}
-      <aside className="fixed left-0 top-0 bottom-0 flex flex-col p-4 w-[200px] h-screen font-sans text-sm font-medium tracking-tight z-50" style={{ backgroundColor: '#0f0f0f', borderRight: '1px solid #1c1c1c' }}>
-        <div className="flex items-center gap-3 mb-8 px-2">
-          <div className="w-6 h-6 rounded flex items-center justify-center shadow-md" style={{ backgroundColor: '#ededed' }}>
-            <Bolt className="h-4 w-4" style={{ color: '#0f0f0f', fill: '#0f0f0f' }} />
-          </div>
-          <span className="text-lg font-bold tracking-tighter" style={{ color: '#ededed' }}>widgetforge</span>
-        </div>
-        
-        <nav className="flex-1 space-y-1">
-          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200" style={{ color: '#71717a' }}>
-            <LayoutDashboard className="h-4 w-4" />
-            Dashboard
-          </Link>
-          <Link href="/dashboard/settings" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200 rounded-md" style={{ backgroundColor: '#1c1c1c', color: '#ededed' }}>
-            <Settings className="h-4 w-4" />
-            Settings
-          </Link>
-        </nav>
-        
-        <div className="mt-auto space-y-4 pt-4 border-t" style={{ borderTop: '1px solid #1c1c1c' }}>
-          <div className="space-y-1">
-            <Link href="/docs" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
-              <Book className="h-4 w-4" />
-              Docs
-            </Link>
-            <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
-              <HelpCircle className="h-4 w-4" />
-              Support
-            </Link>
-          </div>
-          <div className="p-3 rounded-lg border" style={{ backgroundColor: '#0f0f0f', border: '1px solid #1c1c1c' }}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] uppercase tracking-widest font-mono" style={{ color: '#3f3f46' }}>Status</span>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#052e16' }}></span>
-            </div>
-            <div className="text-[11px] truncate font-mono" style={{ color: '#71717a' }}>{userEmail || 'user@example.com'}</div>
-            <div className="inline-flex items-center px-1.5 py-0.5 mt-2 rounded border text-[10px] font-mono uppercase tracking-wider" style={{ backgroundColor: '#1c1c1c', borderColor: '#1c1c1c', color: '#ededed' }}>
-              Free Tier
-            </div>
-          </div>
-        </div>
-      </aside>
+      <Navbar userEmail={userEmail} activePage="settings" onLogout={handleLogout} />
+      
+      <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 52px)' }}>
+        <Sidebar userEmail={userEmail} />
 
-      {/* ── Main Content Area ── */}
-      <main className="flex-1 ml-[200px] flex flex-col min-h-screen overflow-x-hidden">
-        
-        <Navbar userEmail={userEmail} activePage="other" onLogout={handleLogout} />
-
-        <div className="p-8 max-w-3xl mx-auto w-full flex-1">
+        {/* ── Main Content Area ── */}
+        <main className="flex-1 overflow-y-auto w-full">
+          
+          <div className="p-8 max-w-3xl mx-auto w-full flex-1">
           <div className="mb-10">
             <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: '#ededed' }}>Settings</h1>
             <p className="text-sm" style={{ color: '#71717a' }}>Manage your account, preferences, and API endpoints.</p>
@@ -358,8 +318,9 @@ export default function SettingsPage() {
             </div>
           </div>
 
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

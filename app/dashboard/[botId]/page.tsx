@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { LayoutDashboard, Settings, Bolt, Book, HelpCircle } from 'lucide-react'
+import Navbar from '@/components/Navbar'
+import Sidebar from '@/components/Sidebar'
 
 interface Bot {
   id: string
@@ -57,6 +59,11 @@ export default function BotDetailPage() {
   const VERCEL_URL = process.env.NEXT_PUBLIC_APP_URL || 'YOUR_VERCEL_URL'
   const scriptTag = `<script\n  src="${VERCEL_URL}/widget.js"\n  data-bot-id="${botId}">\n</script>`
 
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
   async function handleSave() {
     setSaving(true)
     setSaved(false)
@@ -106,56 +113,17 @@ export default function BotDetailPage() {
   )
 
   return (
-    <div className="flex min-h-screen font-sans" style={{ backgroundColor: '#0f0f0f', color: '#ededed' }}>
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a] font-sans">
       
-      {/* ── Sidebar ── */}
-      <aside className="fixed left-0 top-0 bottom-0 flex flex-col p-4 w-[200px] h-screen font-sans text-sm font-medium tracking-tight z-50" style={{ backgroundColor: '#0f0f0f', borderRight: '1px solid #1c1c1c' }}>
-        <div className="flex items-center gap-3 mb-8 px-2">
-          <div className="w-6 h-6 rounded flex items-center justify-center shadow-none" style={{ backgroundColor: '#ededed' }}>
-            <Bolt className="h-4 w-4" style={{ color: '#0f0f0f', fill: '#0f0f0f' }} />
-          </div>
-          <span className="text-lg font-bold tracking-tighter" style={{ color: '#ededed' }}>widgetforge</span>
-        </div>
-        
-        <nav className="flex-1 space-y-1">
-          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200" style={{ backgroundColor: '#1c1c1c', color: '#ededed' }}>
-            <LayoutDashboard className="h-4 w-4" />
-            Dashboard
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200" style={{ color: '#71717a' }}>
-            <Settings className="h-4 w-4" />
-            Settings
-          </Link>
-        </nav>
-        
-        <div className="mt-auto space-y-4 pt-4 border-t" style={{ borderTop: '1px solid #1c1c1c' }}>
-          <div className="space-y-1">
-            <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
-              <Book className="h-4 w-4" />
-              Documentation
-            </Link>
-            <Link href="#" className="flex items-center gap-3 px-3 py-2 transition-colors duration-200" style={{ color: '#71717a' }}>
-              <HelpCircle className="h-4 w-4" />
-              Support
-            </Link>
-          </div>
-          <div className="p-3 rounded-lg border" style={{ backgroundColor: '#0f0f0f', border: '1px solid #1c1c1c' }}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] uppercase tracking-widest font-mono" style={{ color: '#3f3f46' }}>Status</span>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#052e16' }}></span>
-            </div>
-            <div className="text-[11px] truncate font-mono" style={{ color: '#71717a' }}>{userEmail || 'user@example.com'}</div>
-            <div className="inline-flex items-center px-1.5 py-0.5 mt-2 rounded border text-[10px] font-mono uppercase tracking-wider" style={{ backgroundColor: '#1c1c1c', borderColor: '#1c1c1c', color: '#ededed' }}>
-              Free Tier
-            </div>
-          </div>
-        </div>
-      </aside>
+      <Navbar userEmail={userEmail} onLogout={handleLogout} />
+      
+      <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 52px)' }}>
+        <Sidebar userEmail={userEmail} />
 
-      {/* ── Main Content Area ── */}
-      <main className="flex-1 ml-[200px] flex flex-col min-h-screen">
-        
-        {/* Top Navbar */}
+        {/* ── Main Content Area ── */}
+        <main className="flex-1 overflow-y-auto w-full">
+          
+          {/* Top Navbar */}
         <header className="sticky top-0 z-40 flex items-center justify-between px-6 h-14 w-full border-b" style={{ backgroundColor: '#0f0f0f', borderBottom: '1px solid #1c1c1c' }}>
           <div className="flex items-center gap-4">
             <nav className="flex items-center text-[11px] font-mono" style={{ color: '#71717a' }}>
@@ -291,8 +259,9 @@ export default function BotDetailPage() {
             </div>
             
           </div>
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
