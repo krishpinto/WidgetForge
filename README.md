@@ -20,8 +20,8 @@ through Drizzle ORM on Supabase so there's no funny business with SQL injection.
 
 ## Running locally
 ```bash
-git clone https://github.com/yourrepo/widget
-cd widget
+git clone https://github.com/krishpinto/WidgetForge.git
+cd WidgetForge
 npm install
 cp .env.example .env.local
 # fill in your Supabase and encryption keys
