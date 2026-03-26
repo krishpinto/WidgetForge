@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Widget
 
-## Getting Started
+Built this because a junior of mine wanted a chatbot on his website 
+and had no idea how to set one up. Figured a lot of people are 
+probably in the same situation.
 
-First, run the development server:
+## What it does
 
+You log in, paste your website URL or describe your website in a few lines. 
+That gets scraped and turned into a system prompt. Then you bring your own 
+API key — supports OpenAI, Gemini, Anthropic, and Grok — and it pulls up 
+all the models available to you. Pick one, customise the bot, test it right 
+there, and when you're happy you get a single script tag.
+
+Paste that one line into your website. Done. 60 seconds.
+
+The widget runs in a Shadow DOM so your site's styles won't interfere with it 
+at all. Your API key is AES encrypted before storage and the database runs 
+through Drizzle ORM on Supabase so there's no funny business with SQL injection.
+
+## Running locally
 ```bash
+git clone https://github.com/yourrepo/widget
+cd widget
+npm install
+cp .env.example .env.local
+# fill in your Supabase and encryption keys
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://process.env.NEXT_PUBLIC_APP_URL](http://process.env.NEXT_PUBLIC_APP_URL) with your browser to see the result.
+## What's next
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Planning to add no-code integrations for Webflow, Framer, WordPress etc. 
+so people don't have to touch any code at all. Too much on my plate right 
+now but it's coming.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*P.S. — started this in 60 seconds as a joke to see if I could. 
+kind of just kept going.*
